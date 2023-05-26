@@ -2,55 +2,55 @@
 # Outline of the data processing logic:
 #
 #   Summary:
-#   - loads planbranch_nrsl_0 data 
-#       - from: s3a://tp-cdp-datalate-landing-dev/raw/raw_mkt_mkt_planbranch_nrsl_0/year=*/month=*/day=* 
-#       - filter: 
+#   - loads planbranch_nrsl_0 data
+#       - from: s3a://tp-cdp-datalate-landing-dev/raw/raw_mkt_mkt_planbranch_nrsl_0/year=*/month=*/day=*
+#       - filter:
 #            from raw.planbranch_nrss_0 as a
 #            left join optimise_case_joined_0 as b
 #                on a.caseid = b.caseid
-#            where 
+#            where
 #                a.modified >= date_sub(to_date(firstDay, "yyyy-MM-dd"), 1)
 #       - to: table mart.planbranch_nrsl_0
-#    
+#
 #   - loads planbranch_nrss_0 data
 #       - from: s3a://tp-cdp-datalate-landing-dev/raw/raw_mkt_mkt_planbranch_nrss_0/year=*/month=*/day=*
-#       - filter: 
+#       - filter:
 #            from raw.planbranch_nrss_0 as a
 #            left join optimise_case_joined_0 as b
 #                on a.caseid = b.caseid
-#            where 
+#            where
 #                a.modified >= date_sub(to_date(firstDay, "yyyy-MM-dd"), 1)
 #       - to: table mart.planbranch_nrss_0
 #
 #   - loads planconstraint_nrsl_0 data
 #       - from: s3a://tp-cdp-datalate-landing-dev/raw/raw_mkt_mkt_planconstraint_nrsl_0/year=*/month=*/day=*
-#       - filter: 
+#       - filter:
 #            from raw.planconstraint_nrsl_0 as a
 #            left join optimise_case_joined_0 as b
 #                on a.caseid = b.caseid
-#            where 
+#            where
 #                a.modified >= date_sub(to_date(firstDay, "yyyy-MM-dd"), 1)
-#       - to: mart.planconstraint_nrsl_0 
+#       - to: mart.planconstraint_nrsl_0
 #
 #   - loads planconstraint_nrss_0 data
 #       - from: s3a://tp-cdp-datalate-landing-dev/raw/raw_mkt_mkt_planconstraint_nrss_0/year=*/month=*/day=*
-#       - filter: 
+#       - filter:
 #            from raw.planconstraint_nrss_0 as a
 #            left join optimise_case_joined_0 as b
 #                on a.caseid = b.caseid
-#            where 
+#            where
 #                a.modified >= date_sub(to_date("%s", "yyyy-MM-dd"), 1)
-#       - to: mart.planconstraint_nrss_0 
+#       - to: mart.planconstraint_nrss_0
 #
 #   - loads planconstraint_rtd_0 data
 #       - from: s3a://tp-cdp-datalate-landing-dev/raw/raw_mkt_mkt_planconstraint_rtd_0/year=*/month=*/day=*
-#       - filter: 
+#       - filter:
 #            from raw.planconstraint_rtd_0 as a
 #            left join optimise_case_joined_0 as b
 #                on a.caseid = b.caseid
-#            where 
+#            where
 #                a.modified >= date_sub(to_date(firstDay, "yyyy-MM-dd"), 1)
-#       - to: mart.planconstraint_rtd_0 
+#       - to: mart.planconstraint_rtd_0
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (current_date, date_sub, dayofmonth, month,
@@ -125,15 +125,15 @@ logger.info(f'Data date range ("firstDay" -> "lastDay"): "{firstDay}" -> "{lastD
 
 
 # inputDf_optimise_case_joined.filter("""
-#     (created = to_date("2021-11-07", "yyyy-MM-dd")) or 
-#     (created = date_sub(to_date("2021-11-07", "yyyy-MM-dd"), 1)) or 
+#     (created = to_date("2021-11-07", "yyyy-MM-dd")) or
+#     (created = date_sub(to_date("2021-11-07", "yyyy-MM-dd"), 1)) or
 #     (created = date_sub(to_date("2021-11-07", "yyyy-MM-dd"), 2))
 # """) \
 #     .cache() \
 #     .createOrReplaceTempView("optimise_case_joined_0")
 
 inputDf_optimise_case_joined.filter(f"""
-    (created >= date_sub(to_date("{firstDay}", "yyyy-MM-dd"), 2)) and 
+    (created >= date_sub(to_date("{firstDay}", "yyyy-MM-dd"), 2)) and
     (created <= to_date("{lastDay}", "yyyy-MM-dd"))
 """) \
     .cache() \
@@ -143,8 +143,8 @@ inputDf_optimise_case_joined.filter(f"""
 ## LOG num records ##
 # setup a basic logger
 # import logging
-# log4jLogger = spark._jvm.org.apache.log4j 
-# logger = log4jLogger.LogManager.getLogger(__name__) 
+# log4jLogger = spark._jvm.org.apache.log4j
+# logger = log4jLogger.LogManager.getLogger(__name__)
 
 # countRows = spark.sql(f"select 1 from optimise_case_joined_0").count()
 # logger.info(f"Count records in filtered dataframe 'inputDf_optimise_case_joined': {countRows}")
@@ -218,11 +218,11 @@ STORED AS PARQUET LOCATION '%s/%s/%s/%s/%s'
 
 # insert into hive table
 spark.sql("""
-insert 
-into %s.%s 
+insert
+into %s.%s
 partition(modified)
 from raw_mkt_%s
-select 
+select
     operation,
     timestamp,
     primarykey,
@@ -312,7 +312,7 @@ select /*+ BROADCAST(b) */
 from raw.%s as a
     left join optimise_case_joined_0 as b
         on a.caseid = b.caseid
-where 
+where
     a.modified >= date_sub(to_date("%s", "yyyy-MM-dd"), 1)
 """ % (table_planbranch_nrsl, firstDay))
 insertDf_raw_planbranch_nrsl.write.insertInto("%s.%s" % (database_mart, table_planbranch_nrsl), overwrite=True)
@@ -382,11 +382,11 @@ STORED AS PARQUET LOCATION '%s/%s/%s/%s/%s'
 
 # insert into hive table
 spark.sql("""
-insert 
-into %s.%s 
+insert
+into %s.%s
 partition(modified)
 from raw_mkt_%s
-select 
+select
     operation,
     timestamp,
     primarykey,
@@ -474,7 +474,7 @@ select /*+ BROADCAST(b) */
 from raw.%s as a
     left join optimise_case_joined_0 as b
         on a.caseid = b.caseid
-where 
+where
     a.modified >= date_sub(to_date("%s", "yyyy-MM-dd"), 1)
 """ % (table_planbranch_nrss, firstDay))
 insertDf_raw_planbranch_nrss.write.insertInto("%s.%s" % (database_mart, table_planbranch_nrss), overwrite=True)
@@ -552,11 +552,11 @@ STORED AS PARQUET LOCATION '%s/%s/%s/%s/%s'
 
 # insert into hive table
 spark.sql("""
-insert 
-into %s.%s 
+insert
+into %s.%s
 partition(modified)
 from raw_mkt_%s
-select 
+select
     operation,
     timestamp,
     primarykey,
@@ -673,7 +673,7 @@ select /*+ BROADCAST(b) */
 from raw.%s as a
     left join optimise_case_joined_0 as b
         on a.caseid = b.caseid
-where 
+where
     a.modified >= date_sub(to_date("%s", "yyyy-MM-dd"), 1)
 """ % (table_planconstraint_nrsl, firstDay))
 insertDf_raw_planconstraint_nrsl.write.insertInto("%s.%s" % (database_mart, table_planconstraint_nrsl), overwrite=True)
@@ -753,11 +753,11 @@ STORED AS PARQUET LOCATION '%s/%s/%s/%s/%s'
 
 # insert into hive table
 spark.sql("""
-insert 
-into %s.%s 
+insert
+into %s.%s
 partition(modified)
 from raw_mkt_%s
-select 
+select
     operation,
     timestamp,
     primarykey,
@@ -874,7 +874,7 @@ select /*+ BROADCAST(b) */
 from raw.%s as a
     left join optimise_case_joined_0 as b
         on a.caseid = b.caseid
-where 
+where
     a.modified >= date_sub(to_date("%s", "yyyy-MM-dd"), 1)
 """ % (table_planconstraint_nrss, firstDay))
 insertDf_raw_planconstraint_nrss.write.insertInto("%s.%s" % (database_mart, table_planconstraint_nrss), overwrite=True)
@@ -952,11 +952,11 @@ STORED AS PARQUET LOCATION '%s/%s/%s/%s/%s'
 
 # insert into hive table
 spark.sql("""
-insert 
-into %s.%s 
+insert
+into %s.%s
 partition(modified)
 from raw_mkt_%s
-select 
+select
     operation,
     timestamp,
     primarykey,
@@ -1073,7 +1073,7 @@ select /*+ BROADCAST(b) */
 from raw.%s as a
     left join optimise_case_joined_0 as b
         on a.caseid = b.caseid
-where 
+where
     a.modified >= date_sub(to_date("%s", "yyyy-MM-dd"), 1)
 """ % (table_planconstraint_rtd, firstDay))
 insertDf_raw_planconstraint_rtd.write.insertInto("%s.%s" % (database_mart, table_planconstraint_rtd), overwrite=True)
