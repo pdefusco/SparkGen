@@ -85,7 +85,7 @@ spark.sql("CREATE DATABASE IF NOT EXISTS spark_catalog.{}".format(sparkmetrics_d
 
 spark.sql("CREATE TABLE IF NOT EXISTS spark_catalog.{}.STAGE_METRICS_TABLE\
                 (JOBID BIGINT,\
-                JOBGROUP BIGINT,\
+                JOBGROUP STRING,\
                 STAGEID INT,\
                 NAME STRING,\
                 SUBMISSIONTIME BIGINT,\
@@ -136,21 +136,21 @@ spark.sql("CREATE TABLE IF NOT EXISTS spark_catalog.{}.STAGE_METRICS_TABLE\
 #                READ SOURCE TABLES
 #---------------------------------------------------
 print("JOB STARTED...")
-car_sales     = spark.sql("SELECT * FROM spark_catalog.{0}.CAR_SALES_{1}".format(dbname, username)) #could also checkpoint here but need to set checkpoint dir
-customer_data = spark.sql("SELECT * FROM spark_catalog.{0}.CUSTOMER_DATA_{1}".format(dbname, username))
-car_installs  = spark.sql("SELECT * FROM spark_catalog.{0}.CAR_INSTALLS_{1}".format(dbname, username))
-factory_data  = spark.sql("SELECT * FROM spark_catalog.{0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username))
-geo_data      = spark.sql("SELECT postalcode as zip, latitude, longitude FROM spark_catalog.{0}.GEO_DATA_XREF_{1}".format(dbname, username))
+car_sales_df     = spark.sql("SELECT * FROM spark_catalog.{0}.CAR_SALES_{1}".format(dbname, username)) #could also checkpoint here but need to set checkpoint dir
+customer_data_df = spark.sql("SELECT * FROM spark_catalog.{0}.CUSTOMER_DATA_{1}".format(dbname, username))
+car_installs_df  = spark.sql("SELECT * FROM spark_catalog.{0}.CAR_INSTALLS_{1}".format(dbname, username))
+factory_data_df  = spark.sql("SELECT * FROM spark_catalog.{0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username))
+geo_data_df      = spark.sql("SELECT postalcode as zip, latitude, longitude FROM spark_catalog.{0}.GEO_DATA_XREF_{1}".format(dbname, username))
 print("\tREAD TABLE(S) COMPLETED")
 
 #---------------------------------------------------
 #                  APPLY FILTERS
 # - Remove under aged drivers (less than 16 yrs old)
 #---------------------------------------------------
-before = customer_data.count()
+before = customer_data_df.count()
 
-print(customer_data.dtypes)
-print(customer_data.schema)
+print(customer_data_df.dtypes)
+print(customer_data_df.schema)
 
 #customer_data = customer_data.filter(col('birthdate') <= F.add_months(F.current_date(),-192))
 #after = customer_data.count()
@@ -174,33 +174,33 @@ stagemetrics.print_report()
 tempTable = spark.sql(salesandcustomers_sql)
 if (_DEBUG_):
     print("\tTABLE: CAR_SALES")
-    car_sales.show(n=5)
+    car_sales_df.show(n=5)
     print("\tTABLE: CUSTOMER_DATA")
-    customer_data.show(n=5)
+    customer_data_df.show(n=5)
     print("\tJOIN: CAR_SALES x CUSTOMER_DATA")
     tempTable.show(n=5)
 
 # Add geolocations based on ZIP
-tempTable = tempTable.join(geo_data, "zip")
+tempTable = tempTable.join(geo_data_df, "zip")
 if (_DEBUG_):
     print("\tTABLE: GEO_DATA_XREF")
-    geo_data.show(n=5)
+    geo_data_df.show(n=5)
     print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip)")
     tempTable.show(n=5)
 
 # Add installation information (What part went into what car?)
-tempTable = tempTable.join(car_installs, ["VIN","model"])
+tempTable = tempTable.join(car_installs_df, ["VIN","model"])
 if (_DEBUG_):
     print("\tTABLE: CAR_INSTALLS")
-    car_installs.show(n=5)
+    car_installs_df.show(n=5)
     print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model)")
     tempTable.show(n=5)
 
 # Add factory information (For each part, in what factory was it made, from what machine, and at what time)
-tempTable = tempTable.join(factory_data, ["serial_no"])
+tempTable = tempTable.join(factory_data_df, ["serial_no"])
 if (_DEBUG_):
     print("\tTABLE: EXPERIMENTAL_MOTORS")
-    factory_data.show(n=5)
+    factory_data_df.show(n=5)
     print("\tJOIN QUERY: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model) x EXPERIMENTAL_MOTORS (serial_no)")
     tempTable.show(n=5)
 
