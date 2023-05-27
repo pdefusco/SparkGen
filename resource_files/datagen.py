@@ -86,9 +86,9 @@ class DataGen:
 
         testDataSpec = (
             dg.DataGenerator(self.spark, name="car_installs", rows=row_count,partitions=partitions_num).withIdOutput()
-            .withColumn("model", "string", values=model_codes, random=True, distribution="normal")
-            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True, distribution="normal")
-            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True, distribution=dist.Exponential(z))
+            .withColumn("model", "string", values=model_codes, random=True, distribution="normal")#, distribution="normal"
+            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True)
+            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True)
         )
 
         df = testDataSpec.build()
