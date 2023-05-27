@@ -123,7 +123,7 @@ class DataGen:
 
         testDataSpec = (
             dg.DataGenerator(self.spark, name="customer_data", rows=row_count,partitions=partitions_num).withIdOutput()
-            .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True, distribution=dist.Gamma(x, y))
+            .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True)
             .withColumn('username', 'string', template=r'\\w', random=True, distribution=dist.Gamma(x, y))
             .withColumn('name', 'string', template=r'\\w', random=True, distribution=dist.Gamma(x, y))
             .withColumn('gender', 'string', values=gender_codes, random=True)

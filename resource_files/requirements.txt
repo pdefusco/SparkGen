@@ -3,3 +3,4 @@ requests-toolbelt
 xmltodict
 dbldatagen
 PyArrow
+sparkmeasure

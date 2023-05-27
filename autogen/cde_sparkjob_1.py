@@ -50,6 +50,7 @@ import pyspark.sql.functions as F
 import configparser
 from datagen import *
 from datetime import datetime
+import random
 
 config = configparser.ConfigParser()
 config.read('/app/mount/parameters.conf')
@@ -64,9 +65,13 @@ dbname = "SPARKGEN_{}".format(username)
 print("\nUsing DB Name: ", dname)
 
 #---------------------------------------------------
-#               CREATE SPARK SESSION
+#               CREATE SPARK SESSION WITH ICEBERG
 #---------------------------------------------------
-spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopFileSystems", data_lake_name).getOrCreate()
+spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
+    .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
+    .config("spark.sql.catalog.spark_catalog.type", "hive")\
+    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
+    .getOrCreate()
 
 #-----------------------------------------------------------------------------------
 # CREATE DATASETS WITH RANDOM DISTRIBUTIONS
@@ -74,9 +79,16 @@ spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopF
 
 dg = DataGen(spark, username)
 
-x = 1
-y = 2
-z = 3
+x = random.randint(1, 3)
+y = random.randint(1, 4)
+z = random.randint(2, 5)
+
+print("\nValue for x: ")
+print(x)
+print("\nValue for y: ")
+print(y)
+print("\nValue for z: ")
+print(z)
 
 car_installs_df  = dg.car_installs_gen(z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
 car_sales_df     = dg.car_sales_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
@@ -87,23 +99,32 @@ geo_data_df      = dg.geo_gen(x, y, z, partitions_num=10, row_count = 100000, un
 #---------------------------------------------------
 #       SQL CLEANUP: DATABASES, TABLES, VIEWS
 #---------------------------------------------------
-spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
+
+# Show catalog and database
+print("SHOW CURRENT NAMESPACE")
+spark.sql("SHOW CURRENT NAMESPACE").show()
 
 ##---------------------------------------------------
 ##                 CREATE DATABASES
 ##---------------------------------------------------
-spark.sql("CREATE DATABASE {}".format(dbname))
+
+spark.sql("DROP DATABASE IF EXISTS spark_catalog.{} CASCADE".format(dbname))
+spark.sql("CREATE DATABASE spark_catalog.{}".format(dbname))
+spark.sql("USE spark_catalog.{}".format(dbname))
+
+# Show catalog and database
+print("SHOW NEW NAMESPACE IN USE\n")
+spark.sql("SHOW CURRENT NAMESPACE").show()
 
 #---------------------------------------------------
 #               POPULATE TABLES
 #---------------------------------------------------
 
-
-df.write.mode("overwrite").saveAsTable('{0}_CAR_INSTALLS_{1}'.format(dbname, username), format="parquet") #partitionBy("month")
-df.write.mode("overwrite").saveAsTable('{0}_CAR_SALES_{1}'.format(dbname, username), format="parquet")
-df.write.mode("overwrite").saveAsTable('{0}_CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
-df.write.mode("overwrite").saveAsTable('{0}_EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
-df.write.mode("overwrite").saveAsTable('{0}_GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
+car_installs_df.writeTo("spark_catalog.{0}_CAR_INSTALLS_{1}"".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_CAR_SALES_{1}"".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_CUSTOMER_DATA_{1}"".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_EXPERIMENTAL_MOTORS_{1}"".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_GEO_DATA_XREF_{1}"".format(dbname, username)).create()
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 
