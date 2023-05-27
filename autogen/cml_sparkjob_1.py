@@ -43,12 +43,11 @@ import os
 from os.path import exists
 import json
 import sys
-import xmltodict as xd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import pyspark.sql.functions as F
 import configparser
-from datagen import *
+from resource_files.datagen import *
 from datetime import datetime
 import random
 
@@ -62,7 +61,7 @@ print("\nRunning as Username: ", username)
 
 dbname = "SPARKGEN_{}".format(username)
 
-print("\nUsing DB Name: ", dname)
+print("\nUsing DB Name: ", dbname)
 
 #---------------------------------------------------
 #               CREATE SPARK SESSION WITH ICEBERG
