@@ -43,11 +43,17 @@ import pyspark.sql.functions as F
 import configparser
 from sparkmeasure import StageMetrics
 
-config = configparser.ConfigParser()
-config.read('/app/mount/parameters.conf')
-data_lake_name=config.get("general","data_lake_name")
-s3BucketName=config.get("general","s3BucketName")
-username=config.get("general","username")
+## CDE PROPERTIES
+#config = configparser.ConfigParser()
+#config.read('/app/mount/parameters.conf')
+#data_lake_name=config.get("general","data_lake_name")
+#s3BucketName=config.get("general","s3BucketName")
+#username=config.get("general","username")
+
+## CML PROPERTIES
+data_lake_name = "s3a://go01-demo/"
+s3BucketName = "s3a://go01-demo/sparkgen"
+username = "pdefusco_052623"
 
 print("Running as Username: ", username)
 
