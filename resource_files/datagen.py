@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from pyspark.sql.types import LongType, IntegerType, StringType
 import dbldatagen as dg
+import dbldatagen.distributions as dist
 
 class DataGen:
 
@@ -37,7 +38,7 @@ class DataGen:
         lines = ["delta", "xyzzy", "lakehouse", "gadget", "droid"]
 
         testDataSpec = (
-            dg.DataGenerator(spark, name="device_data_set", rows=row_count,partitions=partitions_num).withIdOutput()
+            dg.DataGenerator(self.spark, name="device_data_set", rows=row_count,partitions=partitions_num).withIdOutput()
             # we'll use hash of the base field to generate the ids to
             # avoid a simple incrementing sequence
             .withColumn("internal_device_id", "long", minValue=0x1000000000000,
@@ -79,98 +80,100 @@ class DataGen:
         return dfTestData
 
 
-    def car_installs_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def car_installs_gen(z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         model_codes = ["A","B","D","E"]
 
         testDataSpec = (
-            dg.DataGenerator(spark, name="car_installs", rows=row_count,partitions=partitions_num).withIdOutput()
-            .withColumn("model", "string", values=model_codes, random=True)
-            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True)
-            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True)
+            dg.DataGenerator(self.spark, name="car_installs", rows=row_count,partitions=partitions_num).withIdOutput()
+            .withColumn("model", "string", values=model_codes, random=True, distribution="normal")
+            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True, distribution="normal")
+            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True, distribution=dist.Exponential(z))
         )
 
-        dfTestData = testDataSpec.build()
+        df = testDataSpec.build()
 
-        return dfTestData
+        return df
 
 
-    def car_sales_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def car_sales_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         model_codes = ["Model A","Model B","Model D","Model E"]
 
         testDataSpec = (
-            dg.DataGenerator(spark, name="car_sales", rows=row_count,partitions=partitions_num).withIdOutput()
-            .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True)
-            .withColumn("model", "string", values=model_codes, random=True)
-            .withColumn("saleprice", "decimal(10,2)", minValue=5000, maxValue=100000, random=True)
-            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True)
-            .withColumn("month", "integer", minValue=1, maxValue=12, random=True)
-            .withColumn("year", "integer", minValue=1999, maxValue=2023, random=True)
-            .withColumn("day", "integer", minValue=1, maxValue=28, random=True)
+            dg.DataGenerator(self.spark, name="car_sales", rows=row_count,partitions=partitions_num).withIdOutput()
+            .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True, distribution="normal")
+            .withColumn("model", "string", values=model_codes, random=True, distribution=dist.Gamma(x, y))
+            .withColumn("saleprice", "decimal(10,2)", minValue=5000, maxValue=100000, random=True, distribution=dist.Exponential(z))
+            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True, distribution=dist.Exponential(z))
+            .withColumn("month", "integer", minValue=1, maxValue=12, random=True, distribution=dist.Exponential(z))
+            .withColumn("year", "integer", minValue=1999, maxValue=2023, random=True, distribution="normal")
+            .withColumn("day", "integer", minValue=1, maxValue=28, random=True, distribution=dist.Gamma(x, y))
         )
 
-        dfTestData = testDataSpec.build()
+        df = testDataSpec.build()
 
-        return dfTestData
+        return df
 
-    def customer_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+
+    def customer_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         model_codes = ["Model A","Model B","Model D","Model E"]
         gender_codes = ["M","F"]
 
         testDataSpec = (
-            dg.DataGenerator(spark, name="customer_data", rows=row_count,partitions=partitions_num).withIdOutput()
-            .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True)
-            .withColumn('username', 'string', template=r'\\w', random=True)
-            .withColumn('name', 'string', template=r'\\w', random=True)
+            dg.DataGenerator(self.spark, name="customer_data", rows=row_count,partitions=partitions_num).withIdOutput()
+            .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True, distribution=dist.Gamma(x, y))
+            .withColumn('username', 'string', template=r'\\w', random=True, distribution=dist.Gamma(x, y))
+            .withColumn('name', 'string', template=r'\\w', random=True, distribution=dist.Gamma(x, y))
             .withColumn('gender', 'string', values=gender_codes, random=True)
-            .withColumn("email", 'string', template=r"\\w.\\w@\\w.com", random=True)
+            .withColumn("email", 'string', template=r"\\w.\\w@\\w.com", random=True, distribution=dist.Gamma(x, y))
             .withColumn("birthdate", "timestamp", begin="1950-01-01 01:00:00",
-                    end="2003-12-31 23:59:00", interval="1 minute", random=True )
-            .withColumn("salary", "decimal(10,2)", minValue=50000, maxValue=1000000, random=True)
-            .withColumn("zip", "integer", minValue=10000, maxValue=99999, random=True)
+                    end="2003-12-31 23:59:00", interval="1 minute", random=True, distribution="normal")
+            .withColumn("salary", "decimal(10,2)", minValue=50000, maxValue=1000000, random=True, distribution="normal")
+            .withColumn("zip", "integer", minValue=10000, maxValue=99999, random=True, distribution="normal")
         )
 
-        dfTestData = testDataSpec.build()
+        df = testDataSpec.build()
 
-        return dfTestData
+        return df
 
 
-    def factory_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def factory_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         testDataSpec = (
-            dg.DataGenerator(spark, name="factory_data", rows=row_count,partitions=partitions_num).withIdOutput()
-            .withColumn("factory_no", "int", minValue=10000, maxValue=1000000, random=True)
-            .withColumn("machine_no", "int", minValue=120, maxValue=99999, random=True)
-            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True)
-            .withColumn("part_no", "string", template=r'\\a42CLDR', random=True)
+            dg.DataGenerator(self.spark, name="factory_data", rows=row_count,partitions=partitions_num).withIdOutput()
+            .withColumn("factory_no", "int", minValue=10000, maxValue=1000000, random=True, distribution=dist.Gamma(x, y))
+            .withColumn("machine_no", "int", minValue=120, maxValue=99999, random=True, distribution=dist.Gamma(x, y))
+            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True, distribution=dist.Exponential(z))
+            .withColumn("part_no", "string", template=r'\\a42CLDR', random=True, distribution=dist.Exponential(z))
             .withColumn("timestamp", "timestamp", begin="2000-01-01 01:00:00",
-                    end="2003-12-31 23:59:00", interval="1 minute", random=True )
+                    end="2003-12-31 23:59:00", interval="1 minute", random=True, distribution="normal")
             .withColumn("status", "string", values=["beta_engine"])
 
         )
 
-        dfTestData = testDataSpec.build()
+        df = testDataSpec.build()
 
-        return dfTestData
+        return df
 
-    def geo_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+
+    def geo_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         state_names = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida"]
 
         testDataSpec = (
-            dg.DataGenerator(spark, name="geo_data", rows=row_count,partitions=partitions_num).withIdOutput()
+            dg.DataGenerator(self.spark, name="geo_data", rows=row_count,partitions=partitions_num).withIdOutput()
             .withColumn("country_code", "string", values=["US"])
-            .withColumn("state", "string", values=state_names, random=True)
-            .withColumn("postalcode", "integer", minValue=10000, maxValue=99999, random=True)
-            .withColumn("latitude", "decimal(10,2)", minValue=-90, maxValue=90, random=True)
+            .withColumn("state", "string", values=state_names, random=True, distribution=dist.Gamma(x, y))
+            .withColumn("postalcode", "integer", minValue=10000, maxValue=99999, random=True, distribution="normal")
+            .withColumn("latitude", "decimal(10,2)", minValue=-90, maxValue=90, random=True, distribution=dist.Exponential(z))
             .withColumn("longitude", "decimal(10,2)", minValue=-180, maxValue=180, random=True)
         )
 
-        dfTestData = testDataSpec.build()
+        df = testDataSpec.build()
 
-        return dfTestData
+        return df
 
 
     def save_table(df, table_name_prefix, username):
