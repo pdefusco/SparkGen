@@ -67,18 +67,15 @@ print("\nUsing DB Name: ", dbname)
 #---------------------------------------------------
 
 ### CDE JAR OPTIONS
-#spark.jars=/app/mount/<resource name>/<name of the uploaded jar>.jar
-#spark.driver.extraClassPath=/app/mount/<resource name>/<name of the uploaded jar>.jar
-
-CDE_RESOURCE_NAME = "SPARKGEN_FILES"
+# Adding the following in your spark session in CDE won't work. You must add the two configs directly as CDE Job configurations
+#.config("spark.jars","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
+#.config("spark.driver.extraClassPath","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
 
 spark = SparkSession.builder.appName('ENRICH')\
             .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
             .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
             .config("spark.sql.catalog.spark_catalog.type", "hive")\
             .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
-            .config("spark.jars","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
-            .config("spark.driver.extraClassPath","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
             .getOrCreate()
 
 ### CML SPARK SESSION
