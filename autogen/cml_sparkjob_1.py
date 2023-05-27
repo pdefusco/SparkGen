@@ -89,11 +89,11 @@ print(y)
 print("\nValue for z: ")
 print(z)
 
-car_installs_df  = dg.car_installs_gen(z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
-car_sales_df     = dg.car_sales_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
-customer_data_df = dg.customer_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
-factory_data_df  = dg.factory_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
-geo_data_df      = dg.geo_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
+car_installs_df  = dg.car_installs_gen(z, 10, 100000, 100000, True)
+car_sales_df     = dg.car_sales_gen(x, y, z, 10, 100000, 100000, True)
+customer_data_df = dg.customer_gen(x, y, z, 10, 100000, 100000, True)
+factory_data_df  = dg.factory_gen(x, y, z, 10, 100000, 100000, True)
+geo_data_df      = dg.geo_gen(x, y, z, 10, 100000, 100000, True)
 
 #---------------------------------------------------
 #       SQL CLEANUP: DATABASES, TABLES, VIEWS
