@@ -52,7 +52,7 @@ print("Running as Username: ", username)
 
 dbname = "SPARKGEN_{}".format(username)
 
-print("\nUsing DB Name: ", dname)
+print("\nUsing DB Name: ", dbname)
 
 #---------------------------------------------------
 #               CREATE SPARK SESSION
@@ -64,11 +64,11 @@ _DEBUG_ = False
 #                READ SOURCE TABLES
 #---------------------------------------------------
 print("JOB STARTED...")
-car_sales     = spark.sql("SELECT * FROM {}_CAR_DATA.car_sales".format(username)) #could also checkpoint here but need to set checkpoint dir
-customer_data = spark.sql("SELECT * FROM {}_CAR_DATA.customer_data".format(username))
-car_installs  = spark.sql("SELECT * FROM {}_CAR_DATA.car_installs".format(username))
-factory_data  = spark.sql("SELECT * FROM {}_CAR_DATA.experimental_motors".format(username))
-geo_data      = spark.sql("SELECT postalcode as zip, latitude, longitude FROM {}_CAR_DATA.geo_data_xref".format(username))
+car_sales     = spark.sql("SELECT * FROM {0}.CAR_SALES_{1}".format(dbname, username)) #could also checkpoint here but need to set checkpoint dir
+customer_data = spark.sql("SELECT * FROM {0}.CUSTOMER_DATA_{1}".format(dbname, username))
+car_installs  = spark.sql("SELECT * FROM {0}.CAR_INSTALLS_{1}".format(dbname, username))
+factory_data  = spark.sql("SELECT * FROM {0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username))
+geo_data      = spark.sql("SELECT postalcode as zip, latitude, longitude FROM {0}.GEO_DATA_XREF_{1}".format(dbname, username))
 print("\tREAD TABLE(S) COMPLETED")
 
 #---------------------------------------------------
@@ -76,6 +76,10 @@ print("\tREAD TABLE(S) COMPLETED")
 # - Remove under aged drivers (less than 16 yrs old)
 #---------------------------------------------------
 before = customer_data.count()
+
+print(customer_data.dtypes)
+print(customer_data.schema)
+
 customer_data = customer_data.filter(col('birthdate') <= F.add_months(F.current_date(),-192))
 after = customer_data.count()
 print(f"\tFILTER DATA (CUSTOMER_DATA): Before({before}), After ({after}), Difference ({after - before}) rows")
@@ -85,8 +89,8 @@ print(f"\tFILTER DATA (CUSTOMER_DATA): Before({before}), After ({after}), Differ
 #---------------------------------------------------
 # SQL way to do things
 salesandcustomers_sql = "SELECT customers.*, sales.saleprice, sales.model, sales.VIN \
-                            FROM {0}_CAR_DATA.car_sales sales JOIN {0}_CAR_DATA.customer_data customers \
-                             ON sales.customer_id = customers.customer_id ".format(username)
+                            FROM {0}.CAR_SALES_{1} sales JOIN {0}.CUSTOMER_DATA_{1} customers \
+                             ON sales.customer_id = customers.customer_id ".format(dbname, username)
 
 tempTable = spark.sql(salesandcustomers_sql)
 if (_DEBUG_):
@@ -124,15 +128,9 @@ if (_DEBUG_):
 #---------------------------------------------------
 #             CREATE NEW HIVE TABLE
 #---------------------------------------------------
-tempTable.write.mode("overwrite").saveAsTable('{}_CAR_DATA.experimental_motors_enriched'.format(username), format="parquet")
-print("\tNEW ENRICHED TABLE CREATED: {}_CAR_DATA.EXPERIMENTAL_MOTORS_ENRICHED".format(username))
+tempTable.write.mode("overwrite").saveAsTable('{0}.experimental_motors_enriched_{1}'.format(dbname, username), format="parquet")
+print("\tNEW ENRICHED TABLE CREATED: {0}.experimental_motors_enriched_{1}".format(dbname, username))
 tempTable.show(n=5)
 
 spark.stop()
 print("JOB COMPLETED!\n\n")
-
-#---------------------------------------------------
-#       SQL CLEANUP: DATABASES, TABLES, VIEWS
-#---------------------------------------------------
-print("DROPPING DATABASE {}".format(dbname))
-spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))

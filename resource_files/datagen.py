@@ -174,14 +174,3 @@ class DataGen:
         df = testDataSpec.build()
 
         return df
-
-
-    def save_table(df, table_name_prefix, username):
-
-        now = datetime.now()
-        timestamp = datetime.timestamp(now)
-        print("TIMESTAMP: ", timestamp)
-        df.write.mode("overwrite").saveAsTable('{0}_{1}_{2}'.format(table_name_prefix, username, timestamp), format="parquet") #partitionBy()
-
-
-    def drop_d

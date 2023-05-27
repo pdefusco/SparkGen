@@ -98,13 +98,12 @@ spark.sql("CREATE DATABASE {}".format(dbname))
 #               POPULATE TABLES
 #---------------------------------------------------
 
-#NB: The car sales table is partitioned by month
 
-dg.save_table(car_installs_df, '{}.CAR_INSTALLS'.format(dbname), username)
-dg.save_table(car_sales_df, '{}.CAR_SALES'.format(dbname), username)
-dg.save_table(customer_data_df, '{}.CUSTOMER_DATA'.format(dbname), username)
-dg.save_table(factory_data_df, '{}.EXPERIMENTAL_MOTORS'.format(dbname), username)
-dg.save_table(geo_data_df, '{}.GEO_DATA_XREF'.format(dbname), username)
+df.write.mode("overwrite").saveAsTable('{0}_CAR_INSTALLS_{1}'.format(dbname, username), format="parquet") #partitionBy("month")
+df.write.mode("overwrite").saveAsTable('{0}_CAR_SALES_{1}'.format(dbname, username), format="parquet")
+df.write.mode("overwrite").saveAsTable('{0}_CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
+df.write.mode("overwrite").saveAsTable('{0}_EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
+df.write.mode("overwrite").saveAsTable('{0}_GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 
