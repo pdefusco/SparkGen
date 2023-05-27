@@ -145,8 +145,8 @@ class DataGen:
             dg.DataGenerator(self.spark, name="factory_data", rows=row_count,partitions=partitions_num).withIdOutput()
             .withColumn("factory_no", "int", minValue=10000, maxValue=1000000, random=True, distribution=dist.Gamma(x, y))
             .withColumn("machine_no", "int", minValue=120, maxValue=99999, random=True, distribution=dist.Gamma(x, y))
-            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True, distribution=dist.Exponential(z))
-            .withColumn("part_no", "string", template=r'\\a42CLDR', random=True, distribution=dist.Exponential(z))
+            .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True)
+            .withColumn("part_no", "string", template=r'\\a42CLDR', random=True)
             .withColumn("timestamp", "timestamp", begin="2000-01-01 01:00:00",
                     end="2003-12-31 23:59:00", interval="1 minute", random=True, distribution="normal")
             .withColumn("status", "string", values=["beta_engine"])
@@ -163,7 +163,7 @@ class DataGen:
         state_names = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida"]
 
         testDataSpec = (
-            dg.DataGenerator(self.spark, name="geo_data", rows=row_count,partitions=partitions_num).withIdOutput()
+            dg.DataGenerator(self.spark, name="geo_data", rows=row_count, partitions=partitions_num).withIdOutput()
             .withColumn("country_code", "string", values=["US"])
             .withColumn("state", "string", values=state_names, random=True, distribution=dist.Gamma(x, y))
             .withColumn("postalcode", "integer", minValue=10000, maxValue=99999, random=True, distribution="normal")
