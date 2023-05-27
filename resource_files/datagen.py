@@ -9,8 +9,9 @@ class DataGen:
 
     '''Class to Generate Data'''
 
-    def __init__(self, spark):
+    def __init__(self, spark, username):
         self.spark = spark
+        self.username = username
         ## TODO: look into adding custom db functionality
 
 
@@ -76,10 +77,10 @@ class DataGen:
             display(dfTestData)
 
         return dfTestData
-     
-        
+
+
     def car_installs_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
-    
+
         model_codes = ["A","B","D","E"]
 
         testDataSpec = (
@@ -90,12 +91,12 @@ class DataGen:
         )
 
         dfTestData = testDataSpec.build()
-    
+
         return dfTestData
-    
-    
+
+
     def car_sales_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
-    
+
         model_codes = ["Model A","Model B","Model D","Model E"]
 
         testDataSpec = (
@@ -112,9 +113,9 @@ class DataGen:
         dfTestData = testDataSpec.build()
 
         return dfTestData
-    
+
     def customer_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
-    
+
         model_codes = ["Model A","Model B","Model D","Model E"]
         gender_codes = ["M","F"]
 
@@ -125,7 +126,7 @@ class DataGen:
             .withColumn('name', 'string', template=r'\\w', random=True)
             .withColumn('gender', 'string', values=gender_codes, random=True)
             .withColumn("email", 'string', template=r"\\w.\\w@\\w.com", random=True)
-            .withColumn("birthdate", "timestamp", begin="1950-01-01 01:00:00", 
+            .withColumn("birthdate", "timestamp", begin="1950-01-01 01:00:00",
                     end="2003-12-31 23:59:00", interval="1 minute", random=True )
             .withColumn("salary", "decimal(10,2)", minValue=50000, maxValue=1000000, random=True)
             .withColumn("zip", "integer", minValue=10000, maxValue=99999, random=True)
@@ -134,8 +135,8 @@ class DataGen:
         dfTestData = testDataSpec.build()
 
         return dfTestData
-    
-    
+
+
     def factory_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         testDataSpec = (
@@ -144,7 +145,7 @@ class DataGen:
             .withColumn("machine_no", "int", minValue=120, maxValue=99999, random=True)
             .withColumn("serial_no", "string", template=r'\\N42CLDR0156661577860220', random=True)
             .withColumn("part_no", "string", template=r'\\a42CLDR', random=True)
-            .withColumn("timestamp", "timestamp", begin="2000-01-01 01:00:00", 
+            .withColumn("timestamp", "timestamp", begin="2000-01-01 01:00:00",
                     end="2003-12-31 23:59:00", interval="1 minute", random=True )
             .withColumn("status", "string", values=["beta_engine"])
 
@@ -153,7 +154,7 @@ class DataGen:
         dfTestData = testDataSpec.build()
 
         return dfTestData
-    
+
     def geo_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         state_names = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida"]
@@ -170,9 +171,9 @@ class DataGen:
         dfTestData = testDataSpec.build()
 
         return dfTestData
-    
-    
-    def save_table(df, table_name_prefix):
+
+
+    def save_table(df, table_name_prefix, username):
 
         now = datetime.now()
         timestamp = datetime.timestamp(now)
