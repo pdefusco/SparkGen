@@ -1,5 +1,5 @@
 #****************************************************************************
-# (C) Cloudera, Inc. 2020-2022
+# (C) Cloudera, Inc. 2020-2023
 #  All rights reserved.
 #
 #  Applicable Open Source License: GNU Affero General Public License v3.0
@@ -48,6 +48,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import pyspark.sql.functions as F
 import configparser
+from datagen import *
+from datetime import datetime
 
 config = configparser.ConfigParser()
 config.read('/app/mount/parameters.conf')
@@ -55,7 +57,11 @@ data_lake_name=config.get("general","data_lake_name")
 s3BucketName=config.get("general","s3BucketName")
 username=config.get("general","username")
 
-print("Running as Username: ", username)
+print("\nRunning as Username: ", username)
+
+dbname = "SPARKGEN_{}".format(username)
+
+print("\nUsing DB Name: ", dname)
 
 #---------------------------------------------------
 #               CREATE SPARK SESSION
@@ -63,45 +69,43 @@ print("Running as Username: ", username)
 spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopFileSystems", data_lake_name).getOrCreate()
 
 #-----------------------------------------------------------------------------------
-# LOAD DATA FROM .CSV FILES ON AWS S3 CLOUD STORAGE
-#
-# REQUIREMENT: Update variable s3BucketName
-#              using storage.location.base attribute; defined by your environment.
-#
-#              For example, property storage.location.base
-#                           has value 's3a://usermarketing-cdp-demo'
-#                           Therefore, set variable as:
-#                                 s3BucketName = "s3a://usermarketing-cdp-demo"
+# CREATE DATASETS WITH RANDOM DISTRIBUTIONS
 #-----------------------------------------------------------------------------------
-car_installs  = spark.read.csv(s3BucketName + "/car_installs.csv",        header=True, inferSchema=True)
-car_sales     = spark.read.csv(s3BucketName + "/historical_car_sales.csv",           header=True, inferSchema=True)
-customer_data = spark.read.csv(s3BucketName + "/customer_data.csv",       header=True, inferSchema=True)
-factory_data  = spark.read.csv(s3BucketName + "/experimental_motors.csv", header=True, inferSchema=True)
-geo_data      = spark.read.csv(s3BucketName + "/postal_codes.csv",        header=True, inferSchema=True)
+
+dg = DataGen(spark, username)
+
+x = 1
+y = 2
+z = 3
+
+car_installs_df  = dg.car_installs_gen(z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
+car_sales_df     = dg.car_sales_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
+customer_data_df = dg.customer_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
+factory_data_df  = dg.factory_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
+geo_data_df      = dg.geo_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True)
 
 #---------------------------------------------------
 #       SQL CLEANUP: DATABASES, TABLES, VIEWS
 #---------------------------------------------------
-print("JOB STARTED...")
-spark.sql("DROP DATABASE IF EXISTS {}_CAR_DATA CASCADE".format(username))
-print("\tDROP DATABASE(S) COMPLETED")
+spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
 
 ##---------------------------------------------------
 ##                 CREATE DATABASES
 ##---------------------------------------------------
-spark.sql("CREATE DATABASE {}_CAR_DATA".format(username))
-print("\tCREATE DATABASE(S) COMPLETED")
+spark.sql("CREATE DATABASE {}".format(dbname))
 
 #---------------------------------------------------
 #               POPULATE TABLES
 #---------------------------------------------------
 
 #NB: The car sales table is partitioned by month
-car_sales.write.mode("overwrite").partitionBy("month").saveAsTable('{}_CAR_DATA.CAR_SALES'.format(username), format="parquet")
-car_installs.write.mode("overwrite").saveAsTable('{}_CAR_DATA.CAR_INSTALLS'.format(username), format="parquet")
-factory_data.write.mode("overwrite").saveAsTable('{}_CAR_DATA.EXPERIMENTAL_MOTORS'.format(username), format="parquet")
-customer_data.write.mode("overwrite").saveAsTable('{}_CAR_DATA.CUSTOMER_DATA'.format(username), format="parquet")
-geo_data.write.mode("overwrite").saveAsTable('{}_CAR_DATA.GEO_DATA_XREF'.format(username), format="parquet")
+
+dg.save_table(car_installs_df, '{}.CAR_INSTALLS'.format(dbname), username)
+dg.save_table(car_sales_df, '{}.CAR_SALES'.format(dbname), username)
+dg.save_table(customer_data_df, '{}.CUSTOMER_DATA'.format(dbname), username)
+dg.save_table(factory_data_df, '{}.EXPERIMENTAL_MOTORS'.format(dbname), username)
+dg.save_table(geo_data_df, '{}.GEO_DATA_XREF'.format(dbname), username)
+
 print("\tPOPULATE TABLE(S) COMPLETED")
 
 print("JOB COMPLETED.\n\n")

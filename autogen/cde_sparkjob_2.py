@@ -50,6 +50,10 @@ username=config.get("general","username")
 
 print("Running as Username: ", username)
 
+dbname = "SPARKGEN_{}".format(username)
+
+print("\nUsing DB Name: ", dname)
+
 #---------------------------------------------------
 #               CREATE SPARK SESSION
 #---------------------------------------------------
@@ -126,3 +130,9 @@ tempTable.show(n=5)
 
 spark.stop()
 print("JOB COMPLETED!\n\n")
+
+#---------------------------------------------------
+#       SQL CLEANUP: DATABASES, TABLES, VIEWS
+#---------------------------------------------------
+print("DROPPING DATABASE {}".format(dbname))
+spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
