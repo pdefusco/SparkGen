@@ -16,7 +16,7 @@ class DataGen:
         ## TODO: look into adding custom db functionality
 
 
-    def iot_gen(partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def iot_gen(self, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         #shuffle_partitions_requested = 8
 
@@ -80,7 +80,7 @@ class DataGen:
         return dfTestData
 
 
-    def car_installs_gen(z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def car_installs_gen(self, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         model_codes = ["A","B","D","E"]
 
@@ -96,7 +96,7 @@ class DataGen:
         return df
 
 
-    def car_sales_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def car_sales_gen(self, x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         model_codes = ["Model A","Model B","Model D","Model E"]
 
@@ -116,7 +116,7 @@ class DataGen:
         return df
 
 
-    def customer_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def customer_gen(self, x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         model_codes = ["Model A","Model B","Model D","Model E"]
         gender_codes = ["M","F"]
@@ -139,7 +139,7 @@ class DataGen:
         return df
 
 
-    def factory_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def factory_gen(self, x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         testDataSpec = (
             dg.DataGenerator(self.spark, name="factory_data", rows=row_count,partitions=partitions_num).withIdOutput()
@@ -158,7 +158,7 @@ class DataGen:
         return df
 
 
-    def geo_gen(x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
+    def geo_gen(self, x, y, z, partitions_num=10, row_count = 100000, unique_vals=100000, display_option=True):
 
         state_names = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida"]
 
