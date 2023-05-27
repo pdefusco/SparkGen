@@ -120,11 +120,11 @@ spark.sql("SHOW CURRENT NAMESPACE").show()
 #               POPULATE TABLES
 #---------------------------------------------------
 
-car_installs_df.writeTo("spark_catalog.{0}_CAR_INSTALLS_{1}"".format(dbname, username)).create()
-car_installs_df.writeTo("spark_catalog.{0}_CAR_SALES_{1}"".format(dbname, username)).create()
-car_installs_df.writeTo("spark_catalog.{0}_CUSTOMER_DATA_{1}"".format(dbname, username)).create()
-car_installs_df.writeTo("spark_catalog.{0}_EXPERIMENTAL_MOTORS_{1}"".format(dbname, username)).create()
-car_installs_df.writeTo("spark_catalog.{0}_GEO_DATA_XREF_{1}"".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_CAR_INSTALLS_{1}".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_CAR_SALES_{1}".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_CUSTOMER_DATA_{1}".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_EXPERIMENTAL_MOTORS_{1}".format(dbname, username)).create()
+car_installs_df.writeTo("spark_catalog.{0}_GEO_DATA_XREF_{1}".format(dbname, username)).create()
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 
