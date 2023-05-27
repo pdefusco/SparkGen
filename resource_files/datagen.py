@@ -105,7 +105,7 @@ class DataGen:
             .withColumn("customer_id", "integer", minValue=10000, maxValue=1000000, random=True, distribution="normal")
             .withColumn("model", "string", values=model_codes, random=True, distribution=dist.Gamma(x, y))
             .withColumn("saleprice", "decimal(10,2)", minValue=5000, maxValue=100000, random=True, distribution=dist.Exponential(z))
-            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True, distribution=dist.Exponential(z))
+            .withColumn("VIN", "string", template=r'\\N8UCGTTVDK5J', random=True)
             .withColumn("month", "integer", minValue=1, maxValue=12, random=True, distribution=dist.Exponential(z))
             .withColumn("year", "integer", minValue=1999, maxValue=2023, random=True, distribution="normal")
             .withColumn("day", "integer", minValue=1, maxValue=28, random=True, distribution=dist.Gamma(x, y))
