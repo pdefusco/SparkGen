@@ -53,7 +53,7 @@ from sparkmeasure import StageMetrics
 ## CML PROPERTIES
 data_lake_name = "s3a://go01-demo/"
 s3BucketName = "s3a://go01-demo/sparkgen"
-username = "pdefusco_052623"
+username = "pdefusco_052823"
 
 print("Running as Username: ", username)
 
@@ -73,28 +73,19 @@ print("\nUsing DB Name: ", dbname)
 
 CDE_RESOURCE_NAME = "SPARKGEN_FILES"
 
-"""spark = SparkSession.builder.appName('ENRICH')\
+spark = SparkSession.builder.appName('ENRICH')\
             .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
             .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
             .config("spark.sql.catalog.spark_catalog.type", "hive")\
             .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
             .config("spark.jars","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
             .config("spark.driver.extraClassPath","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
-            .getOrCreate()"""
-
-spark = SparkSession.builder.appName('ENRICH')\
-            .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
-            .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
-            .config("spark.sql.catalog.spark_catalog.type", "hive")\
-            .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
-            .config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
             .getOrCreate()
 
 
 #.config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
 
-print("ALL SPARK CONFIGS IN CDE POST SESSION: ")
-print(spark.sparkContext.getConf().getAll())
+
 
 
 ### CML SPARK SESSION
@@ -107,6 +98,17 @@ SparkContext.setSystemProperty("spark.jars.packages","ch.cern.sparkmeasure:spark
 CONNECTION_NAME = "go01-aw-dl"
 conn = cmldata.get_connection(CONNECTION_NAME)
 spark = conn.get_spark_session()
+
+print("ALL SPARK CONFIGS IN CDE POST SESSION: ")
+print(spark.sparkContext.getConf().getAll())
+
+"""spark = SparkSession.builder.appName('ENRICH')\
+            .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
+            .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
+            .config("spark.sql.catalog.spark_catalog.type", "hive")\
+            .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
+            .config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
+            .getOrCreate()"""
 
 _DEBUG_ = False
 

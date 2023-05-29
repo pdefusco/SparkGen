@@ -61,7 +61,7 @@ import random
 ## CML PROPERTIES
 data_lake_name = "s3a://go01-demo/"
 s3BucketName = "s3a://go01-demo/sparkgen"
-username = "pdefusco_052623"
+username = "pdefusco_052823"
 
 print("\nRunning as Username: ", username)
 
@@ -72,11 +72,25 @@ print("\nUsing DB Name: ", dbname)
 #---------------------------------------------------
 #               CREATE SPARK SESSION WITH ICEBERG
 #---------------------------------------------------
-spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
+
+
+import cml.data_v1 as cmldata
+
+from pyspark import SparkContext
+SparkContext.setSystemProperty("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")
+
+CONNECTION_NAME = "go01-aw-dl"
+conn = cmldata.get_connection(CONNECTION_NAME)
+spark = conn.get_spark_session()
+
+print("ALL SPARK CONFIGS IN CDE POST SESSION: ")
+print(spark.sparkContext.getConf().getAll())
+
+"""spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
     .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
     .config("spark.sql.catalog.spark_catalog.type", "hive")\
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
-    .getOrCreate()
+    .getOrCreate()"""
 
 #-----------------------------------------------------------------------------------
 # CREATE DATASETS WITH RANDOM DISTRIBUTIONS
