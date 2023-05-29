@@ -110,7 +110,7 @@ stagemetrics = StageMetrics(spark)
 
 spark.sql("CREATE DATABASE IF NOT EXISTS {}".format(sparkmetrics_dbname))
 
-#spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
+spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 (JOBID BIGINT,\
@@ -216,8 +216,10 @@ metrics_df = metrics_df.withColumn("INSERT_TIME", lit(timestamp))
 metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
 spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
 
+
 cumulative_metrics_df = spark.sql("SELECT * FROM {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
 display(cumulative_metrics_df.toPandas())
+
 
 spark.stop()
 print("JOB COMPLETED!\n\n")

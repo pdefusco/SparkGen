@@ -111,20 +111,21 @@ geo_data_df      = dg.geo_gen(x, y, z, 10, 100000, 100000, True)
 #---------------------------------------------------
 
 # Show catalog and database
-print("SHOW CURRENT NAMESPACE")
-spark.sql("SHOW CURRENT NAMESPACE").show()
+print("REMOVE PRIOR RUN DATABASE")
+spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
+print("SHOW DATABASES")
+spark.sql("SHOW DATABASES").show()
 
 ##---------------------------------------------------
 ##                 CREATE DATABASES
 ##---------------------------------------------------
 
-spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
 spark.sql("CREATE DATABASE {}".format(dbname))
 spark.sql("USE {}".format(dbname))
 
 # Show catalog and database
-print("SHOW NEW NAMESPACE IN USE\n")
-spark.sql("SHOW CURRENT NAMESPACE").show()
+print("SHOW DATABASES")
+spark.sql("SHOW DATABASES").show()
 
 #---------------------------------------------------
 #               POPULATE TABLES
