@@ -46,7 +46,6 @@ from os.path import exists
 import json
 import sys
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
 import pyspark.sql.functions as F
 import configparser
 from cde_resource_files.datagen import *

@@ -112,7 +112,7 @@ stagemetrics = StageMetrics(spark)
 #               CML ENV VARS
 #---------------------------------------------------
 
-"""x = int(os.environ["x"])
+x = int(os.environ["x"])
 y = int(os.environ["y"])
 z = int(os.environ["z"])
 
@@ -135,33 +135,6 @@ PARTITIONS_NUM_factory_data = int(os.environ["PARTITIONS_NUM_factory_data"])
 ROW_COUNT_geo_data = int(os.environ["ROW_COUNT_geo_data"])
 UNIQUE_VALS_geo_data = int(os.environ["UNIQUE_VALS_geo_data"])
 PARTITIONS_NUM_geo_data = int(os.environ["PARTITIONS_NUM_geo_data"])
-"""
-
-x = random.randint(1, 3)
-y = random.randint(1, 4)
-z = random.randint(2, 5)
-
-ROW_COUNT_car_installs = random.randint(10000, 1000000)
-UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
-PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
-
-ROW_COUNT_car_sales = random.randint(10000, 1000000)
-UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
-PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
-
-ROW_COUNT_customer_data = random.randint(10000, 1000000)
-UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
-PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
-
-ROW_COUNT_factory_data = random.randint(10000, 1000000)
-UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
-PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
-
-ROW_COUNT_geo_data = random.randint(10000, 1000000)
-UNIQUE_VALS_geo_data = random.randint(500, ROW_COUNT_geo_data-1)
-PARTITIONS_NUM_geo_data = round(ROW_COUNT_geo_data / UNIQUE_VALS_geo_data)
-
-
 
 print("\nValue for x: ")
 print(x)
@@ -228,7 +201,10 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 PARTITIONS_NUM_factory_data BIGINT,\
                 ROW_COUNT_geo_data INT,\
                 UNIQUE_VALS_geo_data BIGINT,\
-                PARTITIONS_NUM_geo_data BIGINT\
+                PARTITIONS_NUM_geo_data BIGINT,\
+                x BIGINT,\
+                y BIGINT,\
+                z BIGINT\
                 )".format(sparkmetrics_dbname))
 
 #---------------------------------------------------
@@ -294,21 +270,24 @@ stagemetrics.end()
 stagemetrics.print_report()
 
 metrics_df = metrics_df.withColumn("INSERT_TIME", lit(timestamp))
-metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(timestamp))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_installs", lit(timestamp))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_installs", lit(timestamp))
-metrics_df = metrics_df.withColumn("ROW_COUNT_car_sales", lit(timestamp))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_sales", lit(timestamp))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_sales", lit(timestamp))
-metrics_df = metrics_df.withColumn("ROW_COUNT_customer_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_customer_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_customer_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("ROW_COUNT_factory_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_factory_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_factory_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("ROW_COUNT_geo_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_geo_data", lit(timestamp))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_geo_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(ROW_COUNT_car_installs))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_installs", lit(UNIQUE_VALS_car_installs))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_installs", lit(PARTITIONS_NUM_car_installs))
+metrics_df = metrics_df.withColumn("ROW_COUNT_car_sales", lit(ROW_COUNT_car_sales))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_sales", lit(UNIQUE_VALS_car_sales))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_sales", lit(PARTITIONS_NUM_car_sales))
+metrics_df = metrics_df.withColumn("ROW_COUNT_customer_data", lit(ROW_COUNT_customer_data))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_customer_data", lit(UNIQUE_VALS_customer_data))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_customer_data", lit(PARTITIONS_NUM_customer_data))
+metrics_df = metrics_df.withColumn("ROW_COUNT_factory_data", lit(ROW_COUNT_factory_data))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_factory_data", lit(UNIQUE_VALS_factory_data))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_factory_data", lit(PARTITIONS_NUM_factory_data))
+metrics_df = metrics_df.withColumn("ROW_COUNT_geo_data", lit(ROW_COUNT_geo_data))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_geo_data", lit(UNIQUE_VALS_geo_data))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_geo_data", lit(PARTITIONS_NUM_geo_data))
+metrics_df = metrics_df.withColumn("x", lit(x))
+metrics_df = metrics_df.withColumn("y", lit(y))
+metrics_df = metrics_df.withColumn("z", lit(z))
 
 metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
 spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))

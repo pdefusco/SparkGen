@@ -155,7 +155,7 @@ project_id = os.environ["CDSW_PROJECT_ID"]
 # Create a job. We will create dependent/children jobs of this job, so we call this one a "grandparent job". The parameter "runtime_identifier" is needed if this is running in a runtimes project.
 sparkgen_1_job_body = cmlapi.CreateJobRequest(
     project_id = project_id,
-    name = "SPARKGEN1",
+    name = "SPARKGEN_1_"+session_id,
     script = "autogen/cml_sparkjob_1.py",
     cpu = 4.0,
     memory = 8.0,
@@ -187,7 +187,7 @@ sparkgen_1_job = client.create_job(sparkgen_1_job_body, project_id)
 # Create the SPARKGEN2 JOB
 sparkgen_2_job_body = cmlapi.CreateJobRequest(
     project_id = project_id,
-    name = "SPARKGEN2",
+    name = "SPARKGEN_2_"+session_id,
     script = "autogen/cde_sparkjob_2.py",
     cpu = 4.0,
     memory = 8.0,
@@ -226,8 +226,8 @@ print("CML SPARKGEN PIPELINE TRIGGERED\n")
 print("SPARKGEN1 JOB ID\n")
 print(job_run.id)
 
-# Sleep for 6 minutes while pipeline runs
-time.sleep(360)
+# Sleep for 540 seconds while pipeline runs
+time.sleep(450)
 
 # Rmove Jobs
 print("CML SPARKGEN PIPELINE DELETED\n")
