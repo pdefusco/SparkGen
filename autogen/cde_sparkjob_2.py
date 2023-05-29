@@ -205,12 +205,5 @@ if (_DEBUG_):
     print("\tJOIN QUERY: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model) x EXPERIMENTAL_MOTORS (serial_no)")
     tempTable.show(n=5)
 
-#---------------------------------------------------
-#             CREATE NEW HIVE TABLE
-#---------------------------------------------------
-tempTable.write.mode("overwrite").saveAsTable('{0}.experimental_motors_enriched_{1}'.format(dbname, username), format="parquet")
-print("\tNEW ENRICHED TABLE CREATED: {0}.experimental_motors_enriched_{1}".format(dbname, username))
-tempTable.show(n=5)
-
 spark.stop()
 print("JOB COMPLETED!\n\n")
