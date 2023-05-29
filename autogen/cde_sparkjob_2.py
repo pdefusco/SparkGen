@@ -110,7 +110,7 @@ stagemetrics = StageMetrics(spark)
 
 spark.sql("CREATE DATABASE IF NOT EXISTS {}".format(sparkmetrics_dbname))
 
-spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
+#spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 (JOBID BIGINT,\
