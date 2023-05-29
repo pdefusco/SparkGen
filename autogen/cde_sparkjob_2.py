@@ -37,13 +37,17 @@
 # #  Author(s): Paul de Fusco
 #***************************************************************************/
 
+!pip3 install -r requirements.txt
+
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
+#from pyspark.sql.functions import *
 import pyspark.sql.functions as F
 from pyspark.sql.functions import lit
 import configparser
 from sparkmeasure import StageMetrics
 from datetime import datetime
+import os
+import random
 
 # current date and time
 now = datetime.now()
@@ -108,25 +112,63 @@ stagemetrics = StageMetrics(spark)
 #               CML ENV VARS
 #---------------------------------------------------
 
-ROW_COUNT_car_installs = os.environ["ROW_COUNT_car_installs"]
-UNIQUE_VALS_car_installs = os.environ["UNIQUE_VALS_car_installs"]
-PARTITIONS_NUM_car_installs = os.environ["PARTITIONS_NUM_car_installs"]
+"""x = int(os.environ["x"])
+y = int(os.environ["y"])
+z = int(os.environ["z"])
 
-ROW_COUNT_car_sales = os.environ["ROW_COUNT_car_sales"]
-UNIQUE_VALS_car_sales = os.environ["UNIQUE_VALS_car_sales"]
-PARTITIONS_NUM_car_sales = os.environ["PARTITIONS_NUM_car_sales"]
+ROW_COUNT_car_installs = int(os.environ["ROW_COUNT_car_installs"])
+UNIQUE_VALS_car_installs = int(os.environ["UNIQUE_VALS_car_installs"])
+PARTITIONS_NUM_car_installs = int(os.environ["PARTITIONS_NUM_car_installs"])
 
-ROW_COUNT_customer_data = os.environ["ROW_COUNT_customer_data"]
-UNIQUE_VALS_customer_data = os.environ["UNIQUE_VALS_customer_data"]
-PARTITIONS_NUM_customer_data = os.environ["PARTITIONS_NUM_customer_data"]
+ROW_COUNT_car_sales = int(os.environ["ROW_COUNT_car_sales"])
+UNIQUE_VALS_car_sales = int(os.environ["UNIQUE_VALS_car_sales"])
+PARTITIONS_NUM_car_sales = int(os.environ["PARTITIONS_NUM_car_sales"])
 
-ROW_COUNT_factory_data = os.environ["ROW_COUNT_factory_data"]
-UNIQUE_VALS_factory_data = os.environ["UNIQUE_VALS_factory_data"]
-PARTITIONS_NUM_factory_data = os.environ["PARTITIONS_NUM_factory_data"]
+ROW_COUNT_customer_data = int(os.environ["ROW_COUNT_customer_data"])
+UNIQUE_VALS_customer_data = int(os.environ["UNIQUE_VALS_customer_data"])
+PARTITIONS_NUM_customer_data = int(os.environ["PARTITIONS_NUM_customer_data"])
 
-ROW_COUNT_geo_data = os.environ["ROW_COUNT_geo_data"]
-UNIQUE_VALS_geo_data = os.environ["UNIQUE_VALS_geo_data"]
-PARTITIONS_NUM_geo_data = os.environ["PARTITIONS_NUM_geo_data"]
+ROW_COUNT_factory_data = int(os.environ["ROW_COUNT_factory_data"])
+UNIQUE_VALS_factory_data = int(os.environ["UNIQUE_VALS_factory_data"])
+PARTITIONS_NUM_factory_data = int(os.environ["PARTITIONS_NUM_factory_data"])
+
+ROW_COUNT_geo_data = int(os.environ["ROW_COUNT_geo_data"])
+UNIQUE_VALS_geo_data = int(os.environ["UNIQUE_VALS_geo_data"])
+PARTITIONS_NUM_geo_data = int(os.environ["PARTITIONS_NUM_geo_data"])
+"""
+
+x = random.randint(1, 3)
+y = random.randint(1, 4)
+z = random.randint(2, 5)
+
+ROW_COUNT_car_installs = random.randint(10000, 1000000)
+UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
+PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
+
+ROW_COUNT_car_sales = random.randint(10000, 1000000)
+UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
+PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
+
+ROW_COUNT_customer_data = random.randint(10000, 1000000)
+UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
+PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
+
+ROW_COUNT_factory_data = random.randint(10000, 1000000)
+UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
+PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
+
+ROW_COUNT_geo_data = random.randint(10000, 1000000)
+UNIQUE_VALS_geo_data = random.randint(500, ROW_COUNT_geo_data-1)
+PARTITIONS_NUM_geo_data = round(ROW_COUNT_geo_data / UNIQUE_VALS_geo_data)
+
+
+
+print("\nValue for x: ")
+print(x)
+print("\nValue for y: ")
+print(y)
+print("\nValue for z: ")
+print(z)
 
 #---------------------------------------------------
 #               SPARKMEASURE STAGEMETRICS
@@ -177,13 +219,13 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 PARTITIONS_NUM_car_installs BIGINT,\
                 ROW_COUNT_car_sales BIGINT,\
                 UNIQUE_VALS_car_sales BIGINT,\
-                PARTITIONS_NUM_car_sales FLOAT,\
+                PARTITIONS_NUM_car_sales BIGINT,\
                 ROW_COUNT_customer_data INT,\
                 UNIQUE_VALS_customer_data BIGINT,\
                 PARTITIONS_NUM_customer_data BIGINT,\
                 ROW_COUNT_factory_data BIGINT,\
                 UNIQUE_VALS_factory_data BIGINT,\
-                PARTITIONS_NUM_factory_data FLOAT,\
+                PARTITIONS_NUM_factory_data BIGINT,\
                 ROW_COUNT_geo_data INT,\
                 UNIQUE_VALS_geo_data BIGINT,\
                 PARTITIONS_NUM_geo_data BIGINT\

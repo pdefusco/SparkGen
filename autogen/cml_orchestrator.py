@@ -37,6 +37,8 @@
 # #  Author(s): Paul de Fusco
 #***************************************************************************/
 
+!pip3 install -r requirements.txt
+
 import os
 from cmlapi.utils import Cursor
 import string
@@ -80,31 +82,45 @@ except ApiException as e:
 
 cluster = os.getenv("CDSW_DOMAIN")
 
-# Set random hyperparams for job 1
+# Set random hyperparams for jobs
 
 x = random.randint(1, 3)
 y = random.randint(1, 4)
 z = random.randint(2, 5)
 
-ROW_COUNT_car_installs = random.randint(10000, 1000000)
+def check_partitions(partitions):
+  if partitions > 100:
+    partitions = 100
+  if partitions < 5:
+    partitions = 5
+  else:
+    return partitions
+  return partitions
+
+ROW_COUNT_car_installs = random.randint(10000, 10000000)
 UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
 PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
+PARTITIONS_NUM_car_installs = check_partitions(PARTITIONS_NUM_car_installs)
 
-ROW_COUNT_car_sales = random.randint(10000, 1000000)
+ROW_COUNT_car_sales = random.randint(10000, 10000000)
 UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
 PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
+PARTITIONS_NUM_car_sales = check_partitions(PARTITIONS_NUM_car_sales)
 
-ROW_COUNT_customer_data = random.randint(10000, 1000000)
+ROW_COUNT_customer_data = random.randint(10000, 10000000)
 UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
 PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
+PARTITIONS_NUM_customer_data = check_partitions(PARTITIONS_NUM_customer_data)
 
-ROW_COUNT_factory_data = random.randint(10000, 1000000)
+ROW_COUNT_factory_data = random.randint(10000, 10000000)
 UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
 PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
+PARTITIONS_NUM_factory_data = check_partitions(PARTITIONS_NUM_factory_data)
 
-ROW_COUNT_geo_data = random.randint(10000, 1000000)
+ROW_COUNT_geo_data = random.randint(10000, 10000000)
 UNIQUE_VALS_geo_data = random.randint(500, ROW_COUNT_geo_data-1)
 PARTITIONS_NUM_geo_data = round(ROW_COUNT_geo_data / UNIQUE_VALS_geo_data)
+PARTITIONS_NUM_geo_data = check_partitions(PARTITIONS_NUM_geo_data)
 
 print("SPARKGEN PIPELINE SPARK HYPERPARAMS")
 
@@ -143,24 +159,27 @@ sparkgen_1_job_body = cmlapi.CreateJobRequest(
     script = "autogen/cml_sparkjob_1.py",
     cpu = 4.0,
     memory = 8.0,
-    runtime_identifier = "docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-workbench-python3.7-standard:2022.11.1-b2",
-    runtime_addon_identifiers = ["spark311-13-hf1"],
+    runtime_identifier = "docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-workbench-python3.7-standard:2023.05.1-b4",
+    runtime_addon_identifiers = ["spark320-18-hf4"],
     environment = {
-                    "ROW_COUNT_car_installs":ROW_COUNT_car_installs,
-                    "UNIQUE_VALS_car_installs":UNIQUE_VALS_car_installs,
-                    "PARTITIONS_NUM_car_installs":PARTITIONS_NUM_car_installs,
-                    "ROW_COUNT_car_sales":ROW_COUNT_car_sales,
-                    "UNIQUE_VALS_car_sales":UNIQUE_VALS_car_sales,
-                    "PARTITIONS_NUM_car_sales":PARTITIONS_NUM_car_sales,
-                    "ROW_COUNT_customer_data":ROW_COUNT_customer_data,
-                    "UNIQUE_VALS_customer_data":UNIQUE_VALS_customer_data,
-                    "PARTITIONS_NUM_customer_data":PARTITIONS_NUM_customer_data,
-                    "ROW_COUNT_factory_data":ROW_COUNT_factory_data,
-                    "UNIQUE_VALS_factory_data":UNIQUE_VALS_factory_data,
-                    "PARTITIONS_NUM_factory_data":PARTITIONS_NUM_factory_data,
-                    "ROW_COUNT_geo_data":ROW_COUNT_geo_data,
-                    "UNIQUE_VALS_geo_data":UNIQUE_VALS_geo_data,
-                    "PARTITIONS_NUM_geo_data":PARTITIONS_NUM_geo_data
+                    "x":str(x),
+                    "y":str(y),
+                    "z":str(z),
+                    "ROW_COUNT_car_installs":str(ROW_COUNT_car_installs),
+                    "UNIQUE_VALS_car_installs":str(UNIQUE_VALS_car_installs),
+                    "PARTITIONS_NUM_car_installs":str(PARTITIONS_NUM_car_installs),
+                    "ROW_COUNT_car_sales":str(ROW_COUNT_car_sales),
+                    "UNIQUE_VALS_car_sales":str(UNIQUE_VALS_car_sales),
+                    "PARTITIONS_NUM_car_sales":str(PARTITIONS_NUM_car_sales),
+                    "ROW_COUNT_customer_data":str(ROW_COUNT_customer_data),
+                    "UNIQUE_VALS_customer_data":str(UNIQUE_VALS_customer_data),
+                    "PARTITIONS_NUM_customer_data":str(PARTITIONS_NUM_customer_data),
+                    "ROW_COUNT_factory_data":str(ROW_COUNT_factory_data),
+                    "UNIQUE_VALS_factory_data":str(UNIQUE_VALS_factory_data),
+                    "PARTITIONS_NUM_factory_data":str(PARTITIONS_NUM_factory_data),
+                    "ROW_COUNT_geo_data":str(ROW_COUNT_geo_data),
+                    "UNIQUE_VALS_geo_data":str(UNIQUE_VALS_geo_data),
+                    "PARTITIONS_NUM_geo_data":str(PARTITIONS_NUM_geo_data)
                     }
 )
 sparkgen_1_job = client.create_job(sparkgen_1_job_body, project_id)
@@ -172,26 +191,29 @@ sparkgen_2_job_body = cmlapi.CreateJobRequest(
     script = "autogen/cde_sparkjob_2.py",
     cpu = 4.0,
     memory = 8.0,
-    runtime_identifier = "docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-workbench-python3.7-standard:2022.11.1-b2",
-    runtime_addon_identifiers = ["spark311-13-hf1"],
-    parent_job_id = sparkgen_1_job_body.id,
+    runtime_identifier = "docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-workbench-python3.7-standard:2023.05.1-b4",
+    runtime_addon_identifiers = ["spark320-18-hf4"],
+    parent_job_id = sparkgen_1_job.id,
     environment={
-                "ROW_COUNT_car_installs":ROW_COUNT_car_installs,
-                "UNIQUE_VALS_car_installs":UNIQUE_VALS_car_installs,
-                "PARTITIONS_NUM_car_installs":PARTITIONS_NUM_car_installs,
-                "ROW_COUNT_car_sales":ROW_COUNT_car_sales,
-                "UNIQUE_VALS_car_sales":UNIQUE_VALS_car_sales,
-                "PARTITIONS_NUM_car_sales":PARTITIONS_NUM_car_sales,
-                "ROW_COUNT_customer_data":ROW_COUNT_customer_data,
-                "UNIQUE_VALS_customer_data":UNIQUE_VALS_customer_data,
-                "PARTITIONS_NUM_customer_data":PARTITIONS_NUM_customer_data,
-                "ROW_COUNT_factory_data":ROW_COUNT_factory_data,
-                "UNIQUE_VALS_factory_data":UNIQUE_VALS_factory_data,
-                "PARTITIONS_NUM_factory_data":PARTITIONS_NUM_factory_data,
-                "ROW_COUNT_geo_data":ROW_COUNT_geo_data,
-                "UNIQUE_VALS_geo_data":UNIQUE_VALS_geo_data,
-                "PARTITIONS_NUM_geo_data":PARTITIONS_NUM_geo_data,
-                "CML_JOBRUN_timestamp":timestamp
+                  "x":str(x),
+                  "y":str(y),
+                  "z":str(z),
+                  "ROW_COUNT_car_installs":str(ROW_COUNT_car_installs),
+                  "UNIQUE_VALS_car_installs":str(UNIQUE_VALS_car_installs),
+                  "PARTITIONS_NUM_car_installs":str(PARTITIONS_NUM_car_installs),
+                  "ROW_COUNT_car_sales":str(ROW_COUNT_car_sales),
+                  "UNIQUE_VALS_car_sales":str(UNIQUE_VALS_car_sales),
+                  "PARTITIONS_NUM_car_sales":str(PARTITIONS_NUM_car_sales),
+                  "ROW_COUNT_customer_data":str(ROW_COUNT_customer_data),
+                  "UNIQUE_VALS_customer_data":str(UNIQUE_VALS_customer_data),
+                  "PARTITIONS_NUM_customer_data":str(PARTITIONS_NUM_customer_data),
+                  "ROW_COUNT_factory_data":str(ROW_COUNT_factory_data),
+                  "UNIQUE_VALS_factory_data":str(UNIQUE_VALS_factory_data),
+                  "PARTITIONS_NUM_factory_data":str(PARTITIONS_NUM_factory_data),
+                  "ROW_COUNT_geo_data":str(ROW_COUNT_geo_data),
+                  "UNIQUE_VALS_geo_data":str(UNIQUE_VALS_geo_data),
+                  "PARTITIONS_NUM_geo_data":str(PARTITIONS_NUM_geo_data),
+                  "CML_JOBRUN_timestamp":str(timestamp)
         }
 )
 sparkgen_2_job = client.create_job(sparkgen_2_job_body, project_id)
@@ -201,11 +223,11 @@ jobrun_body = cmlapi.CreateJobRunRequest(project_id, sparkgen_1_job.id)
 job_run = client.create_job_run(jobrun_body, project_id, sparkgen_1_job.id)
 
 print("CML SPARKGEN PIPELINE TRIGGERED\n")
-print("SPARKGEN1 JOB ID\n"))
+print("SPARKGEN1 JOB ID\n")
 print(job_run.id)
 
-# Sleep for 5 minutes while pipeline runs
-time.sleep(300)
+# Sleep for 6 minutes while pipeline runs
+time.sleep(360)
 
 # Rmove Jobs
 print("CML SPARKGEN PIPELINE DELETED\n")
