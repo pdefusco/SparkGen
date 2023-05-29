@@ -62,15 +62,6 @@ sparkmetrics_dbname = "SPARKGEN_METRICS_{}".format(username)
 
 print("\nUsing DB Name: ", dbname)
 
-# Show catalog and database
-print("SHOW CURRENT NAMESPACE")
-spark.sql("SHOW CURRENT NAMESPACE").show()
-spark.sql("USE {}".format(dbname))
-
-# Show catalog and database
-print("SHOW NEW NAMESPACE IN USE\n")
-spark.sql("SHOW CURRENT NAMESPACE").show()
-
 #---------------------------------------------------
 #               CREATE SPARK SESSION
 #---------------------------------------------------
@@ -87,6 +78,15 @@ spark = SparkSession.builder.\
         .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
         .config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
         .getOrCreate()
+
+# Show catalog and database
+print("SHOW CURRENT NAMESPACE")
+spark.sql("SHOW CURRENT NAMESPACE").show()
+spark.sql("USE {}".format(dbname))
+
+# Show catalog and database
+print("SHOW NEW NAMESPACE IN USE\n")
+spark.sql("SHOW CURRENT NAMESPACE").show()
 
 ### CML SPARK SESSION
 
