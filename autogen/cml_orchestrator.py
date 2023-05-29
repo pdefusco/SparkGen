@@ -227,7 +227,7 @@ print("SPARKGEN1 JOB ID\n")
 print(job_run.id)
 
 # Sleep for 540 seconds while pipeline runs
-time.sleep(450)
+time.sleep(630)
 
 # Rmove Jobs
 print("CML SPARKGEN PIPELINE DELETED\n")
