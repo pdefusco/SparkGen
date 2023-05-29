@@ -89,9 +89,29 @@ spark = SparkSession.builder.\
 
 dg = DataGen(spark, username)
 
-x = random.randint(1, 3)
-y = random.randint(1, 4)
-z = random.randint(2, 5)
+x = os.environ["x"]
+y = os.environ["y"]
+z = os.environ["z"]
+
+ROW_COUNT_car_installs = os.environ["ROW_COUNT_car_installs"]
+UNIQUE_VALS_car_installs = os.environ["UNIQUE_VALS_car_installs"]
+PARTITIONS_NUM_car_installs = os.environ["PARTITIONS_NUM_car_installs"]
+
+ROW_COUNT_car_sales = os.environ["ROW_COUNT_car_sales"]
+UNIQUE_VALS_car_sales = os.environ["UNIQUE_VALS_car_sales"]
+PARTITIONS_NUM_car_sales = os.environ["PARTITIONS_NUM_car_sales"]
+
+ROW_COUNT_customer_data = os.environ["ROW_COUNT_customer_data"]
+UNIQUE_VALS_customer_data = os.environ["UNIQUE_VALS_customer_data"]
+PARTITIONS_NUM_customer_data = os.environ["PARTITIONS_NUM_customer_data"]
+
+ROW_COUNT_factory_data = os.environ["ROW_COUNT_factory_data"]
+UNIQUE_VALS_factory_data = os.environ["UNIQUE_VALS_factory_data"]
+PARTITIONS_NUM_factory_data = os.environ["PARTITIONS_NUM_factory_data"]
+
+ROW_COUNT_geo_data = os.environ["ROW_COUNT_geo_data"]
+UNIQUE_VALS_geo_data = os.environ["UNIQUE_VALS_geo_data"]
+PARTITIONS_NUM_geo_data = os.environ["PARTITIONS_NUM_geo_data"]
 
 print("\nValue for x: ")
 print(x)
@@ -100,11 +120,11 @@ print(y)
 print("\nValue for z: ")
 print(z)
 
-car_installs_df  = dg.car_installs_gen(z, 10, 100000, 100000, True)
-car_sales_df     = dg.car_sales_gen(x, y, z, 10, 100000, 100000, True)
-customer_data_df = dg.customer_gen(x, y, z, 10, 100000, 100000, True)
-factory_data_df  = dg.factory_gen(x, y, z, 10, 100000, 100000, True)
-geo_data_df      = dg.geo_gen(x, y, z, 10, 100000, 100000, True)
+car_installs_df  = dg.car_installs_gen(z, PARTITIONS_NUM_car_installs, ROW_COUNT_car_installs, UNIQUE_VALS_car_installs, True)
+car_sales_df     = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car_sales, UNIQUE_VALS_car_sales, True)
+customer_data_df = dg.customer_gen(x, y, z, PARTITIONS_NUM_customer_data, ROW_COUNT_customer_data, UNIQUE_VALS_customer_data, True)
+factory_data_df  = dg.factory_gen(x, y, z, PARTITIONS_NUM_factory_data, ROW_COUNT_factory_data, UNIQUE_VALS_factory_data, True)
+geo_data_df      = dg.geo_gen(x, y, z, PARTITIONS_NUM_geo_data, ROW_COUNT_geo_data, UNIQUE_VALS_geo_data, True)
 
 #---------------------------------------------------
 #       SQL CLEANUP: DATABASES, TABLES, VIEWS

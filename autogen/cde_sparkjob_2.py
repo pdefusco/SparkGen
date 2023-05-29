@@ -105,6 +105,30 @@ _DEBUG_ = False
 stagemetrics = StageMetrics(spark)
 
 #---------------------------------------------------
+#               CML ENV VARS
+#---------------------------------------------------
+
+ROW_COUNT_car_installs = os.environ["ROW_COUNT_car_installs"]
+UNIQUE_VALS_car_installs = os.environ["UNIQUE_VALS_car_installs"]
+PARTITIONS_NUM_car_installs = os.environ["PARTITIONS_NUM_car_installs"]
+
+ROW_COUNT_car_sales = os.environ["ROW_COUNT_car_sales"]
+UNIQUE_VALS_car_sales = os.environ["UNIQUE_VALS_car_sales"]
+PARTITIONS_NUM_car_sales = os.environ["PARTITIONS_NUM_car_sales"]
+
+ROW_COUNT_customer_data = os.environ["ROW_COUNT_customer_data"]
+UNIQUE_VALS_customer_data = os.environ["UNIQUE_VALS_customer_data"]
+PARTITIONS_NUM_customer_data = os.environ["PARTITIONS_NUM_customer_data"]
+
+ROW_COUNT_factory_data = os.environ["ROW_COUNT_factory_data"]
+UNIQUE_VALS_factory_data = os.environ["UNIQUE_VALS_factory_data"]
+PARTITIONS_NUM_factory_data = os.environ["PARTITIONS_NUM_factory_data"]
+
+ROW_COUNT_geo_data = os.environ["ROW_COUNT_geo_data"]
+UNIQUE_VALS_geo_data = os.environ["UNIQUE_VALS_geo_data"]
+PARTITIONS_NUM_geo_data = os.environ["PARTITIONS_NUM_geo_data"]
+
+#---------------------------------------------------
 #               SPARKMEASURE STAGEMETRICS
 #---------------------------------------------------
 
@@ -147,7 +171,22 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 SHUFFLEWRITETIME BIGINT,\
                 SHUFFLEBYTESWRITTEN BIGINT,\
                 SHUFFLERECORDSWRITTEN BIGINT,\
-                INSERT_TIME FLOAT\
+                INSERT_TIME FLOAT,\
+                ROW_COUNT_car_installs INT,\
+                UNIQUE_VALS_car_installs BIGINT,\
+                PARTITIONS_NUM_car_installs BIGINT,\
+                ROW_COUNT_car_sales BIGINT,\
+                UNIQUE_VALS_car_sales BIGINT,\
+                PARTITIONS_NUM_car_sales FLOAT,\
+                ROW_COUNT_customer_data INT,\
+                UNIQUE_VALS_customer_data BIGINT,\
+                PARTITIONS_NUM_customer_data BIGINT,\
+                ROW_COUNT_factory_data BIGINT,\
+                UNIQUE_VALS_factory_data BIGINT,\
+                PARTITIONS_NUM_factory_data FLOAT,\
+                ROW_COUNT_geo_data INT,\
+                UNIQUE_VALS_geo_data BIGINT,\
+                PARTITIONS_NUM_geo_data BIGINT\
                 )".format(sparkmetrics_dbname))
 
 #---------------------------------------------------
@@ -213,13 +252,27 @@ stagemetrics.end()
 stagemetrics.print_report()
 
 metrics_df = metrics_df.withColumn("INSERT_TIME", lit(timestamp))
+metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(timestamp))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_installs", lit(timestamp))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_installs", lit(timestamp))
+metrics_df = metrics_df.withColumn("ROW_COUNT_car_sales", lit(timestamp))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_sales", lit(timestamp))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_sales", lit(timestamp))
+metrics_df = metrics_df.withColumn("ROW_COUNT_customer_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_customer_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_customer_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("ROW_COUNT_factory_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_factory_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_factory_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("ROW_COUNT_geo_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("UNIQUE_VALS_geo_data", lit(timestamp))
+metrics_df = metrics_df.withColumn("PARTITIONS_NUM_geo_data", lit(timestamp))
+
 metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
 spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
 
-
 cumulative_metrics_df = spark.sql("SELECT * FROM {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
 display(cumulative_metrics_df.toPandas())
-
 
 spark.stop()
 print("JOB COMPLETED!\n\n")
