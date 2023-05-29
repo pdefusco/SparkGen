@@ -40,8 +40,15 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import pyspark.sql.functions as F
+from pyspark.sql.functions import lit
 import configparser
 from sparkmeasure import StageMetrics
+from datetime import datetime
+
+# current date and time
+now = datetime.now()
+
+timestamp = datetime.timestamp(now)
 
 ## CDE PROPERTIES
 #config = configparser.ConfigParser()
@@ -103,6 +110,8 @@ stagemetrics = StageMetrics(spark)
 
 spark.sql("CREATE DATABASE IF NOT EXISTS {}".format(sparkmetrics_dbname))
 
+spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
+
 spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 (JOBID BIGINT,\
                 JOBGROUP STRING,\
@@ -137,7 +146,9 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 SHUFFLERECORDSREAD BIGINT,\
                 SHUFFLEWRITETIME BIGINT,\
                 SHUFFLEBYTESWRITTEN BIGINT,\
-                SHUFFLERECORDSWRITTEN BIGINT)".format(sparkmetrics_dbname))
+                SHUFFLERECORDSWRITTEN BIGINT,\
+                INSERT_TIME FLOAT\
+                )".format(sparkmetrics_dbname))
 
 #---------------------------------------------------
 #                READ SOURCE TABLES
@@ -201,8 +212,12 @@ metrics_df = stagemetrics.create_stagemetrics_DF("PerfStageMetrics")
 stagemetrics.end()
 stagemetrics.print_report()
 
+metrics_df = metrics_df.withColumn("INSERT_TIME", lit(timestamp))
 metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
 spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
+
+cumulative_metrics_df = spark.sql("SELECT * FROM {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
+display(cumulative_metrics_df.toPandas())
 
 spark.stop()
 print("JOB COMPLETED!\n\n")
