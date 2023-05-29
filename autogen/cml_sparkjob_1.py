@@ -47,7 +47,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import pyspark.sql.functions as F
 import configparser
-from resource_files.datagen import *
+from cde_resource_files.datagen import *
 from datetime import datetime
 import random
 
