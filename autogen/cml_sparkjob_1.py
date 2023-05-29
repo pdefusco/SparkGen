@@ -58,6 +58,11 @@ import random
 #s3BucketName=config.get("general","s3BucketName")
 #username=config.get("general","username")
 
+# current date and time
+now = datetime.now()
+
+timestamp = datetime.timestamp(now)
+
 ## CML PROPERTIES
 data_lake_name = "s3a://go01-demo/"
 s3BucketName = "s3a://go01-demo/sparkgen"

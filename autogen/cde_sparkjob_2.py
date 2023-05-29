@@ -62,6 +62,15 @@ sparkmetrics_dbname = "SPARKGEN_METRICS_{}".format(username)
 
 print("\nUsing DB Name: ", dbname)
 
+# Show catalog and database
+print("SHOW CURRENT NAMESPACE")
+spark.sql("SHOW CURRENT NAMESPACE").show()
+spark.sql("USE {}".format(dbname))
+
+# Show catalog and database
+print("SHOW NEW NAMESPACE IN USE\n")
+spark.sql("SHOW CURRENT NAMESPACE").show()
+
 #---------------------------------------------------
 #               CREATE SPARK SESSION
 #---------------------------------------------------
@@ -159,10 +168,34 @@ print("\tREAD TABLE(S) COMPLETED")
 #---------------------------------------------------
 # SQL way to do things
 stagemetrics.begin()
-salesandcustomers_sql = "SELECT customers.*, sales.saleprice, sales.model, sales.VIN \
-                            FROM {0}.CAR_SALES_{1} sales JOIN {0}.CUSTOMER_DATA_{1} customers \
-                             ON sales.customer_id = customers.customer_id ".format(dbname, username)
+salesandcustomers_sql = "SELECT customers.*, sales.saleprice, sales.model, sales.VIN\
+                            FROM {0}.CAR_SALES_{1} sales JOIN {0}.CUSTOMER_DATA_{1} customers\
+                             ON sales.customer_id = customers.customer_id\
+                             WHERE customers.salary > 30000".format(dbname, username)
 
+sales_x_customers_df = spark.sql(salesandcustomers_sql)
+if (_DEBUG_):
+    print("\tJOIN: CAR_SALES x CUSTOMER_DATA")
+
+# Add geolocations based on ZIP
+sales_x_customers_x_geo_df = sales_x_customers_df.join(geo_data_df, "zip")
+if (_DEBUG_):
+    print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF")
+
+# Add installation information (What part went into what car?)
+sales_x_customers_x_geo_x_carinstalls_df = sales_x_customers_x_geo_df.join(car_installs_df, ["VIN","model"])
+if (_DEBUG_):
+    print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model)")
+
+# Add factory information (For each part, in what factory was it made, from what machine, and at what time)
+sales_x_customers_x_geo_x_carinstalls_x_factory_df = sales_x_customers_x_geo_x_carinstalls_df.join(factory_data_df, ["serial_no"])
+if (_DEBUG_):
+    print("\tJOIN QUERY: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model) x EXPERIMENTAL_MOTORS (serial_no)")
+
+# Triggering the Action
+sales_x_customers_x_geo_x_carinstalls_x_factory_df.count()
+
+#Saving metrics to df
 metrics_df = stagemetrics.create_stagemetrics_DF("PerfStageMetrics")
 
 stagemetrics.end()
@@ -170,40 +203,6 @@ stagemetrics.print_report()
 
 metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
 spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
-
-
-tempTable = spark.sql(salesandcustomers_sql)
-if (_DEBUG_):
-    print("\tTABLE: CAR_SALES")
-    car_sales_df.show(n=5)
-    print("\tTABLE: CUSTOMER_DATA")
-    customer_data_df.show(n=5)
-    print("\tJOIN: CAR_SALES x CUSTOMER_DATA")
-    tempTable.show(n=5)
-
-# Add geolocations based on ZIP
-tempTable = tempTable.join(geo_data_df, "zip")
-if (_DEBUG_):
-    print("\tTABLE: GEO_DATA_XREF")
-    geo_data_df.show(n=5)
-    print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip)")
-    tempTable.show(n=5)
-
-# Add installation information (What part went into what car?)
-tempTable = tempTable.join(car_installs_df, ["VIN","model"])
-if (_DEBUG_):
-    print("\tTABLE: CAR_INSTALLS")
-    car_installs_df.show(n=5)
-    print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model)")
-    tempTable.show(n=5)
-
-# Add factory information (For each part, in what factory was it made, from what machine, and at what time)
-tempTable = tempTable.join(factory_data_df, ["serial_no"])
-if (_DEBUG_):
-    print("\tTABLE: EXPERIMENTAL_MOTORS")
-    factory_data_df.show(n=5)
-    print("\tJOIN QUERY: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model) x EXPERIMENTAL_MOTORS (serial_no)")
-    tempTable.show(n=5)
 
 spark.stop()
 print("JOB COMPLETED!\n\n")
