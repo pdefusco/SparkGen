@@ -61,7 +61,7 @@ import random
 ## CML PROPERTIES
 data_lake_name = "s3a://go01-demo/"
 s3BucketName = "s3a://go01-demo/sparkgen"
-username = "pdefusco_052823"
+username = "pdefusco_052923"
 
 print("\nRunning as Username: ", username)
 
@@ -73,24 +73,10 @@ print("\nUsing DB Name: ", dbname)
 #               CREATE SPARK SESSION WITH ICEBERG
 #---------------------------------------------------
 
-
-import cml.data_v1 as cmldata
-
-from pyspark import SparkContext
-SparkContext.setSystemProperty("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")
-
-CONNECTION_NAME = "go01-aw-dl"
-conn = cmldata.get_connection(CONNECTION_NAME)
-spark = conn.get_spark_session()
-
-print("ALL SPARK CONFIGS IN CDE POST SESSION: ")
-print(spark.sparkContext.getConf().getAll())
-
-"""spark = SparkSession.builder.appName('INGEST').config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
-    .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
-    .config("spark.sql.catalog.spark_catalog.type", "hive")\
-    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
-    .getOrCreate()"""
+spark = SparkSession.builder.\
+        appName('INGEST')\
+        .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
+        .getOrCreate()
 
 #-----------------------------------------------------------------------------------
 # CREATE DATASETS WITH RANDOM DISTRIBUTIONS
@@ -127,9 +113,9 @@ spark.sql("SHOW CURRENT NAMESPACE").show()
 ##                 CREATE DATABASES
 ##---------------------------------------------------
 
-spark.sql("DROP DATABASE IF EXISTS spark_catalog.{} CASCADE".format(dbname))
-spark.sql("CREATE DATABASE spark_catalog.{}".format(dbname))
-spark.sql("USE spark_catalog.{}".format(dbname))
+spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
+spark.sql("CREATE DATABASE {}".format(dbname))
+spark.sql("USE {}".format(dbname))
 
 # Show catalog and database
 print("SHOW NEW NAMESPACE IN USE\n")
@@ -139,11 +125,11 @@ spark.sql("SHOW CURRENT NAMESPACE").show()
 #               POPULATE TABLES
 #---------------------------------------------------
 
-car_installs_df.writeTo("spark_catalog.{0}.CAR_INSTALLS_{1}".format(dbname, username)).create()
-car_sales_df.writeTo("spark_catalog.{0}.CAR_SALES_{1}".format(dbname, username)).create()
-customer_data_df.writeTo("spark_catalog.{0}.CUSTOMER_DATA_{1}".format(dbname, username)).create()
-factory_data_df.writeTo("spark_catalog.{0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username)).create()
-geo_data_df.writeTo("spark_catalog.{0}.GEO_DATA_XREF_{1}".format(dbname, username)).create()
+car_sales_df.write.mode("overwrite").partitionBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
+car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{}'.format(dbname, username), format="parquet")
+factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{}'.format(dbname, username), format="parquet")
+customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{}'.format(dbname, username), format="parquet")
+geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{}'.format(dbname, username), format="parquet")
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 

@@ -53,7 +53,7 @@ from sparkmeasure import StageMetrics
 ## CML PROPERTIES
 data_lake_name = "s3a://go01-demo/"
 s3BucketName = "s3a://go01-demo/sparkgen"
-username = "pdefusco_052823"
+username = "pdefusco_052923"
 
 print("Running as Username: ", username)
 
@@ -73,42 +73,16 @@ print("\nUsing DB Name: ", dbname)
 
 CDE_RESOURCE_NAME = "SPARKGEN_FILES"
 
-spark = SparkSession.builder.appName('ENRICH')\
-            .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
-            .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
-            .config("spark.sql.catalog.spark_catalog.type", "hive")\
-            .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
-            .config("spark.jars","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
-            .config("spark.driver.extraClassPath","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
-            .getOrCreate()
-
-
-#.config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
-
-
-
+spark = SparkSession.builder.\
+        appName('ENRICH')\
+        .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
+        .config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
+        .getOrCreate()
 
 ### CML SPARK SESSION
 
-import cml.data_v1 as cmldata
-
-from pyspark import SparkContext
-SparkContext.setSystemProperty("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")
-
-CONNECTION_NAME = "go01-aw-dl"
-conn = cmldata.get_connection(CONNECTION_NAME)
-spark = conn.get_spark_session()
-
-print("ALL SPARK CONFIGS IN CDE POST SESSION: ")
+print("ALL SPARK CONFIGS: ")
 print(spark.sparkContext.getConf().getAll())
-
-"""spark = SparkSession.builder.appName('ENRICH')\
-            .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
-            .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")\
-            .config("spark.sql.catalog.spark_catalog.type", "hive")\
-            .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")\
-            .config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
-            .getOrCreate()"""
 
 _DEBUG_ = False
 
@@ -118,9 +92,9 @@ stagemetrics = StageMetrics(spark)
 #               SPARKMEASURE STAGEMETRICS
 #---------------------------------------------------
 
-spark.sql("CREATE DATABASE IF NOT EXISTS spark_catalog.{}".format(sparkmetrics_dbname))
+spark.sql("CREATE DATABASE IF NOT EXISTS {}".format(sparkmetrics_dbname))
 
-spark.sql("CREATE TABLE IF NOT EXISTS spark_catalog.{}.STAGE_METRICS_TABLE\
+spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 (JOBID BIGINT,\
                 JOBGROUP STRING,\
                 STAGEID INT,\
@@ -154,40 +128,27 @@ spark.sql("CREATE TABLE IF NOT EXISTS spark_catalog.{}.STAGE_METRICS_TABLE\
                 SHUFFLERECORDSREAD BIGINT,\
                 SHUFFLEWRITETIME BIGINT,\
                 SHUFFLEBYTESWRITTEN BIGINT,\
-                SHUFFLERECORDSWRITTEN BIGINT) USING ICEBERG".format(sparkmetrics_dbname))
-
-
-'''[('jobId', 'int'), ('jobGroup', 'string'), ('stageId', 'int'), ('name', 'string'), ('submissionTime', 'bigint'), ('completionTime', 'bigint'),
-('stageDuration', 'bigint'),
-('numTasks', 'int'), ('executorRunTime', 'bigint'), ('executorCpuTime', 'bigint'), ('executorDeserializeTime', 'bigint'),
-('executorDeserializeCpuTime', 'bigint'),
- ('resultSerializationTime', 'bigint'), ('jvmGCTime', 'bigint'), ('resultSize', 'bigint'), ('diskBytesSpilled', 'bigint'),
- ('memoryBytesSpilled', 'bigint'), ('peakExecutionMemory', 'bigint'), ('recordsRead', 'bigint'), ('bytesRead', 'bigint'),
-  ('recordsWritten', 'bigint'), ('bytesWritten', 'bigint'), ('shuffleFetchWaitTime', 'bigint'), ('shuffleTotalBytesRead', 'bigint'),
-   ('shuffleTotalBlocksFetched', 'bigint'), ('shuffleLocalBlocksFetched', 'bigint'), ('shuffleRemoteBlocksFetched', 'bigint'),
-   ('shuffleLocalBytesRead', 'bigint'), ('shuffleRemoteBytesRead', 'bigint'), ('shuffleRemoteBytesReadToDisk', 'bigint'),
-   ('shuffleRecordsRead', 'bigint'), ('shuffleWriteTime', 'bigint'), ('shuffleBytesWritten', 'bigint'), ('shuffleRecordsWritten', 'bigint')]
-'''
+                SHUFFLERECORDSWRITTEN BIGINT)".format(sparkmetrics_dbname))
 
 #---------------------------------------------------
 #                READ SOURCE TABLES
 #---------------------------------------------------
 print("JOB STARTED...")
-car_sales_df     = spark.sql("SELECT * FROM spark_catalog.{0}.CAR_SALES_{1}".format(dbname, username)) #could also checkpoint here but need to set checkpoint dir
-customer_data_df = spark.sql("SELECT * FROM spark_catalog.{0}.CUSTOMER_DATA_{1}".format(dbname, username))
-car_installs_df  = spark.sql("SELECT * FROM spark_catalog.{0}.CAR_INSTALLS_{1}".format(dbname, username))
-factory_data_df  = spark.sql("SELECT * FROM spark_catalog.{0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username))
-geo_data_df      = spark.sql("SELECT postalcode as zip, latitude, longitude FROM spark_catalog.{0}.GEO_DATA_XREF_{1}".format(dbname, username))
+car_sales_df     = spark.sql("SELECT * FROM {0}.CAR_SALES_{1}".format(dbname, username)) #could also checkpoint here but need to set checkpoint dir
+customer_data_df = spark.sql("SELECT * FROM {0}.CUSTOMER_DATA_{1}".format(dbname, username))
+car_installs_df  = spark.sql("SELECT * FROM {0}.CAR_INSTALLS_{1}".format(dbname, username))
+factory_data_df  = spark.sql("SELECT * FROM {0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username))
+geo_data_df      = spark.sql("SELECT postalcode as zip, latitude, longitude FROM {0}.GEO_DATA_XREF_{1}".format(dbname, username))
 print("\tREAD TABLE(S) COMPLETED")
 
 #---------------------------------------------------
 #                  APPLY FILTERS
 # - Remove under aged drivers (less than 16 yrs old)
 #---------------------------------------------------
-before = customer_data_df.count()
+#before = customer_data_df.count()
 
-print(customer_data_df.dtypes)
-print(customer_data_df.schema)
+#print(customer_data_df.dtypes)
+#print(customer_data_df.schema)
 
 #customer_data = customer_data.filter(col('birthdate') <= F.add_months(F.current_date(),-192))
 #after = customer_data.count()
@@ -199,14 +160,17 @@ print(customer_data_df.schema)
 # SQL way to do things
 stagemetrics.begin()
 salesandcustomers_sql = "SELECT customers.*, sales.saleprice, sales.model, sales.VIN \
-                            FROM spark_catalog.{0}.CAR_SALES_{1} sales JOIN spark_catalog.{0}.CUSTOMER_DATA_{1} customers \
+                            FROM {0}.CAR_SALES_{1} sales JOIN {0}.CUSTOMER_DATA_{1} customers \
                              ON sales.customer_id = customers.customer_id ".format(dbname, username)
 
 metrics_df = stagemetrics.create_stagemetrics_DF("PerfStageMetrics")
-metrics_df.writeTo("spark_catalog.{0}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname, username)).append()
 
 stagemetrics.end()
 stagemetrics.print_report()
+
+metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
+spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
+
 
 tempTable = spark.sql(salesandcustomers_sql)
 if (_DEBUG_):
@@ -244,8 +208,8 @@ if (_DEBUG_):
 #---------------------------------------------------
 #             CREATE NEW HIVE TABLE
 #---------------------------------------------------
-tempTable.write.mode("overwrite").saveAsTable('spark_catalog.{0}.experimental_motors_enriched_{1}'.format(dbname, username), format="parquet")
-print("\tNEW ENRICHED TABLE CREATED: spark_catalog.{0}.experimental_motors_enriched_{1}".format(dbname, username))
+tempTable.write.mode("overwrite").saveAsTable('{0}.experimental_motors_enriched_{1}'.format(dbname, username), format="parquet")
+print("\tNEW ENRICHED TABLE CREATED: {0}.experimental_motors_enriched_{1}".format(dbname, username))
 tempTable.show(n=5)
 
 spark.stop()
