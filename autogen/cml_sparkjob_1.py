@@ -126,10 +126,10 @@ spark.sql("SHOW CURRENT NAMESPACE").show()
 #---------------------------------------------------
 
 car_sales_df.write.mode("overwrite").partitionBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
-car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{}'.format(dbname, username), format="parquet")
-factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{}'.format(dbname, username), format="parquet")
-customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{}'.format(dbname, username), format="parquet")
-geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{}'.format(dbname, username), format="parquet")
+car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{1}'.format(dbname, username), format="parquet")
+factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
+customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
+geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 
