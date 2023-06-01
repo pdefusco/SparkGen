@@ -112,7 +112,7 @@ stagemetrics = StageMetrics(spark)
 #               CML ENV VARS
 #---------------------------------------------------
 
-x = int(os.environ["x"])
+"""x = int(os.environ["x"])
 y = int(os.environ["y"])
 z = int(os.environ["z"])
 
@@ -134,7 +134,7 @@ PARTITIONS_NUM_factory_data = int(os.environ["PARTITIONS_NUM_factory_data"])
 
 ROW_COUNT_geo_data = int(os.environ["ROW_COUNT_geo_data"])
 UNIQUE_VALS_geo_data = int(os.environ["UNIQUE_VALS_geo_data"])
-PARTITIONS_NUM_geo_data = int(os.environ["PARTITIONS_NUM_geo_data"])
+PARTITIONS_NUM_geo_data = int(os.environ["PARTITIONS_NUM_geo_data"])"""
 
 print("\nValue for x: ")
 print(x)
@@ -151,7 +151,7 @@ spark.sql("CREATE DATABASE IF NOT EXISTS {}".format(sparkmetrics_dbname))
 
 #spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
 
-spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
+"""spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 (JOBID BIGINT,\
                 JOBGROUP STRING,\
                 STAGEID INT,\
@@ -205,6 +205,46 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 x BIGINT,\
                 y BIGINT,\
                 z BIGINT\
+                )".format(sparkmetrics_dbname))"""
+
+
+
+spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
+                (JOBID BIGINT,\
+                JOBGROUP STRING,\
+                STAGEID INT,\
+                NAME STRING,\
+                SUBMISSIONTIME BIGINT,\
+                COMPLETIONTIME BIGINT,\
+                STAGEDURATION BIGINT,\
+                NUMTASKS INT,\
+                EXECUTORRUNTIME BIGINT,\
+                EXECUTORCPUTIME BIGINT,\
+                EXECUTORDESERIALIZETIME BIGINT,\
+                EXECUTORDESERIALIZECPUTIME BIGINT,\
+                RESULTSERIALIZATIONTIME BIGINT,\
+                JVMGCTIME BIGINT,\
+                RESULTSIZE BIGINT,\
+                DISKBYTESSPILLED BIGINT,\
+                MEMORYBYTESSPILLED BIGINT,\
+                PEAKEXECUTIONMEMORY BIGINT,\
+                RECORDSREAD BIGINT,\
+                BYTESREAD BIGINT,\
+                RECORDSWRITTEN BIGINT,\
+                BYTESWRITTEN BIGINT,\
+                SHUFFLEFETCHWAITTIME BIGINT,\
+                SHUFFLETOTALBYTESREAD BIGINT,\
+                SHUFFLETOTALBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBLOCKSFETCHED BIGINT,\
+                SHUFFLEREMOTEBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREADTODISK BIGINT,\
+                SHUFFLERECORDSREAD BIGINT,\
+                SHUFFLEWRITETIME BIGINT,\
+                SHUFFLEBYTESWRITTEN BIGINT,\
+                SHUFFLERECORDSWRITTEN BIGINT,\
+                INSERT_TIME FLOAT,\
                 )".format(sparkmetrics_dbname))
 
 #---------------------------------------------------
@@ -270,7 +310,7 @@ stagemetrics.end()
 stagemetrics.print_report()
 
 metrics_df = metrics_df.withColumn("INSERT_TIME", lit(timestamp))
-metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(ROW_COUNT_car_installs))
+"""metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(ROW_COUNT_car_installs))
 metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_installs", lit(UNIQUE_VALS_car_installs))
 metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_installs", lit(PARTITIONS_NUM_car_installs))
 metrics_df = metrics_df.withColumn("ROW_COUNT_car_sales", lit(ROW_COUNT_car_sales))
@@ -287,7 +327,7 @@ metrics_df = metrics_df.withColumn("UNIQUE_VALS_geo_data", lit(UNIQUE_VALS_geo_d
 metrics_df = metrics_df.withColumn("PARTITIONS_NUM_geo_data", lit(PARTITIONS_NUM_geo_data))
 metrics_df = metrics_df.withColumn("x", lit(x))
 metrics_df = metrics_df.withColumn("y", lit(y))
-metrics_df = metrics_df.withColumn("z", lit(z))
+metrics_df = metrics_df.withColumn("z", lit(z))"""
 
 metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
 spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
