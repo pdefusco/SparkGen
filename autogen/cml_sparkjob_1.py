@@ -90,7 +90,7 @@ spark = SparkSession.builder.\
 
 dg = DataGen(spark, username)
 
-x = int(os.environ["x"])
+"""x = int(os.environ["x"])
 y = int(os.environ["y"])
 z = int(os.environ["z"])
 
@@ -119,7 +119,71 @@ print(x)
 print("\nValue for y: ")
 print(y)
 print("\nValue for z: ")
-print(z)
+print(z)"""
+
+x = random.randint(1, 3)
+y = random.randint(1, 4)
+z = random.randint(2, 5)
+
+def check_partitions(partitions):
+  if partitions > 100:
+    partitions = 100
+  if partitions < 5:
+    partitions = 5
+  else:
+    return partitions
+  return partitions
+
+ROW_COUNT_car_installs = random.randint(10000, 10000000)
+UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
+PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
+PARTITIONS_NUM_car_installs = check_partitions(PARTITIONS_NUM_car_installs)
+
+ROW_COUNT_car_sales = random.randint(10000, 10000000)
+UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
+PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
+PARTITIONS_NUM_car_sales = check_partitions(PARTITIONS_NUM_car_sales)
+
+ROW_COUNT_customer_data = random.randint(10000, 10000000)
+UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
+PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
+PARTITIONS_NUM_customer_data = check_partitions(PARTITIONS_NUM_customer_data)
+
+ROW_COUNT_factory_data = random.randint(10000, 10000000)
+UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
+PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
+PARTITIONS_NUM_factory_data = check_partitions(PARTITIONS_NUM_factory_data)
+
+ROW_COUNT_geo_data = random.randint(10000, 10000000)
+UNIQUE_VALS_geo_data = random.randint(500, ROW_COUNT_geo_data-1)
+PARTITIONS_NUM_geo_data = round(ROW_COUNT_geo_data / UNIQUE_VALS_geo_data)
+PARTITIONS_NUM_geo_data = check_partitions(PARTITIONS_NUM_geo_data)
+
+print("SPARKGEN PIPELINE SPARK HYPERPARAMS")
+
+print("x: {}", x)
+print("y: {}", y)
+print("z: {}", z)
+
+print("ROW_COUNT_car_installs: {}", ROW_COUNT_car_installs)
+print("UNIQUE_VALS_car_installs: {}", UNIQUE_VALS_car_installs)
+print("PARTITIONS_NUM_car_installs: {}", PARTITIONS_NUM_car_installs)
+
+print("ROW_COUNT_car_sales: {}", ROW_COUNT_car_sales)
+print("UNIQUE_VALS_car_sales: {}", UNIQUE_VALS_car_sales)
+print("PARTITIONS_NUM_car_sales: {}", PARTITIONS_NUM_car_sales)
+
+print("ROW_COUNT_customer_data: {}", ROW_COUNT_customer_data)
+print("UNIQUE_VALS_customer_data: {}", UNIQUE_VALS_customer_data)
+print("PARTITIONS_NUM_customer_data: {}", PARTITIONS_NUM_customer_data)
+
+print("ROW_COUNT_factory_data: {}", ROW_COUNT_factory_data)
+print("UNIQUE_VALS_factory_data: {}", UNIQUE_VALS_factory_data)
+print("PARTITIONS_NUM_factory_data: {}", PARTITIONS_NUM_factory_data)
+
+print("ROW_COUNT_geo_data: {}", ROW_COUNT_geo_data)
+print("UNIQUE_VALS_geo_data: {}", UNIQUE_VALS_geo_data)
+print("PARTITIONS_NUM_geo_data: {}", PARTITIONS_NUM_geo_data)
 
 car_installs_df  = dg.car_installs_gen(z, PARTITIONS_NUM_car_installs, ROW_COUNT_car_installs, UNIQUE_VALS_car_installs, True)
 car_sales_df     = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car_sales, UNIQUE_VALS_car_sales, True)
