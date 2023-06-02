@@ -40,19 +40,12 @@
 #!pip3 install -r requirements.txt
 
 from pyspark.sql import SparkSession
-#from pyspark.sql.functions import *
 import pyspark.sql.functions as F
 from pyspark.sql.functions import lit
-import configparser
-from sparkmeasure import StageMetrics
 from datetime import datetime
 import os
 import random
 
-# current date and time
-now = datetime.now()
-
-timestamp = datetime.timestamp(now)
 
 ## CDE PROPERTIES
 #config = configparser.ConfigParser()
@@ -86,10 +79,6 @@ spark = SparkSession.builder.\
         appName('ENRICH')\
         .config("spark.yarn.access.hadoopFileSystems", data_lake_name)\
         .getOrCreate()
-
-#.config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
-#.config("spark.jars","/app/mount/spark-measure_2.13-0.23.jar")\
-#.config("spark.jars.packages","ch.cern.sparkmeasure:spark-measure_2.12:0.23")\
 
 # Show catalog and database
 print("SHOW CURRENT NAMESPACE")
@@ -160,38 +149,6 @@ if (_DEBUG_):
 
 # Triggering the Action
 sales_x_customers_x_geo_x_carinstalls_x_factory_df.count()
-
-#Saving metrics to df
-metrics_df = stagemetrics.create_stagemetrics_DF("PerfStageMetrics")
-
-stagemetrics.end()
-stagemetrics.print_report()
-
-metrics_df = metrics_df.withColumn("INSERT_TIME", lit(timestamp))
-"""metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(ROW_COUNT_car_installs))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_installs", lit(UNIQUE_VALS_car_installs))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_installs", lit(PARTITIONS_NUM_car_installs))
-metrics_df = metrics_df.withColumn("ROW_COUNT_car_sales", lit(ROW_COUNT_car_sales))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_sales", lit(UNIQUE_VALS_car_sales))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_sales", lit(PARTITIONS_NUM_car_sales))
-metrics_df = metrics_df.withColumn("ROW_COUNT_customer_data", lit(ROW_COUNT_customer_data))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_customer_data", lit(UNIQUE_VALS_customer_data))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_customer_data", lit(PARTITIONS_NUM_customer_data))
-metrics_df = metrics_df.withColumn("ROW_COUNT_factory_data", lit(ROW_COUNT_factory_data))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_factory_data", lit(UNIQUE_VALS_factory_data))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_factory_data", lit(PARTITIONS_NUM_factory_data))
-metrics_df = metrics_df.withColumn("ROW_COUNT_geo_data", lit(ROW_COUNT_geo_data))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_geo_data", lit(UNIQUE_VALS_geo_data))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_geo_data", lit(PARTITIONS_NUM_geo_data))
-metrics_df = metrics_df.withColumn("x", lit(x))
-metrics_df = metrics_df.withColumn("y", lit(y))
-metrics_df = metrics_df.withColumn("z", lit(z))"""
-
-metrics_df.registerTempTable("STAGE_METRICS_TEMPTABLE")
-spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(sparkmetrics_dbname))
-
-cumulative_metrics_df = spark.sql("SELECT * FROM {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
-display(cumulative_metrics_df.toPandas())
 
 spark.stop()
 print("JOB COMPLETED!\n\n")
