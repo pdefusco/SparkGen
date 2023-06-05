@@ -68,6 +68,11 @@ username = "pdefusco_052923"
 
 print("Running as Username: ", username)
 
+dbname = "SPARKGEN_{}".format(username)
+sparkmetrics_dbname = "SPARKGEN_METRICS_{}".format(username)
+
+print("\nUsing DB Name: ", dbname)
+
 #---------------------------------------------------
 #               CREATE SPARK SESSION
 #---------------------------------------------------
@@ -104,6 +109,149 @@ spark.sql("SHOW CURRENT NAMESPACE").show()
 
 print("ALL SPARK CONFIGS: ")
 print(spark.sparkContext.getConf().getAll())
+
+_DEBUG_ = False
+
+stagemetrics = StageMetrics(spark)
+
+#---------------------------------------------------
+#               CML ENV VARS
+#---------------------------------------------------
+
+"""x = int(os.environ["x"])
+y = int(os.environ["y"])
+z = int(os.environ["z"])
+
+ROW_COUNT_car_installs = int(os.environ["ROW_COUNT_car_installs"])
+UNIQUE_VALS_car_installs = int(os.environ["UNIQUE_VALS_car_installs"])
+PARTITIONS_NUM_car_installs = int(os.environ["PARTITIONS_NUM_car_installs"])
+
+ROW_COUNT_car_sales = int(os.environ["ROW_COUNT_car_sales"])
+UNIQUE_VALS_car_sales = int(os.environ["UNIQUE_VALS_car_sales"])
+PARTITIONS_NUM_car_sales = int(os.environ["PARTITIONS_NUM_car_sales"])
+
+ROW_COUNT_customer_data = int(os.environ["ROW_COUNT_customer_data"])
+UNIQUE_VALS_customer_data = int(os.environ["UNIQUE_VALS_customer_data"])
+PARTITIONS_NUM_customer_data = int(os.environ["PARTITIONS_NUM_customer_data"])
+
+ROW_COUNT_factory_data = int(os.environ["ROW_COUNT_factory_data"])
+UNIQUE_VALS_factory_data = int(os.environ["UNIQUE_VALS_factory_data"])
+PARTITIONS_NUM_factory_data = int(os.environ["PARTITIONS_NUM_factory_data"])
+
+ROW_COUNT_geo_data = int(os.environ["ROW_COUNT_geo_data"])
+UNIQUE_VALS_geo_data = int(os.environ["UNIQUE_VALS_geo_data"])
+PARTITIONS_NUM_geo_data = int(os.environ["PARTITIONS_NUM_geo_data"])"""
+
+print("\nValue for x: ")
+print(x)
+print("\nValue for y: ")
+print(y)
+print("\nValue for z: ")
+print(z)
+
+#---------------------------------------------------
+#               SPARKMEASURE STAGEMETRICS
+#---------------------------------------------------
+
+spark.sql("CREATE DATABASE IF NOT EXISTS {}".format(sparkmetrics_dbname))
+
+#spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(sparkmetrics_dbname))
+
+"""spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
+                (JOBID BIGINT,\
+                JOBGROUP STRING,\
+                STAGEID INT,\
+                NAME STRING,\
+                SUBMISSIONTIME BIGINT,\
+                COMPLETIONTIME BIGINT,\
+                STAGEDURATION BIGINT,\
+                NUMTASKS INT,\
+                EXECUTORRUNTIME BIGINT,\
+                EXECUTORCPUTIME BIGINT,\
+                EXECUTORDESERIALIZETIME BIGINT,\
+                EXECUTORDESERIALIZECPUTIME BIGINT,\
+                RESULTSERIALIZATIONTIME BIGINT,\
+                JVMGCTIME BIGINT,\
+                RESULTSIZE BIGINT,\
+                DISKBYTESSPILLED BIGINT,\
+                MEMORYBYTESSPILLED BIGINT,\
+                PEAKEXECUTIONMEMORY BIGINT,\
+                RECORDSREAD BIGINT,\
+                BYTESREAD BIGINT,\
+                RECORDSWRITTEN BIGINT,\
+                BYTESWRITTEN BIGINT,\
+                SHUFFLEFETCHWAITTIME BIGINT,\
+                SHUFFLETOTALBYTESREAD BIGINT,\
+                SHUFFLETOTALBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBLOCKSFETCHED BIGINT,\
+                SHUFFLEREMOTEBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREADTODISK BIGINT,\
+                SHUFFLERECORDSREAD BIGINT,\
+                SHUFFLEWRITETIME BIGINT,\
+                SHUFFLEBYTESWRITTEN BIGINT,\
+                SHUFFLERECORDSWRITTEN BIGINT,\
+                INSERT_TIME FLOAT,\
+                ROW_COUNT_car_installs INT,\
+                UNIQUE_VALS_car_installs BIGINT,\
+                PARTITIONS_NUM_car_installs BIGINT,\
+                ROW_COUNT_car_sales BIGINT,\
+                UNIQUE_VALS_car_sales BIGINT,\
+                PARTITIONS_NUM_car_sales BIGINT,\
+                ROW_COUNT_customer_data INT,\
+                UNIQUE_VALS_customer_data BIGINT,\
+                PARTITIONS_NUM_customer_data BIGINT,\
+                ROW_COUNT_factory_data BIGINT,\
+                UNIQUE_VALS_factory_data BIGINT,\
+                PARTITIONS_NUM_factory_data BIGINT,\
+                ROW_COUNT_geo_data INT,\
+                UNIQUE_VALS_geo_data BIGINT,\
+                PARTITIONS_NUM_geo_data BIGINT,\
+                x BIGINT,\
+                y BIGINT,\
+                z BIGINT\
+                )".format(sparkmetrics_dbname))"""
+
+
+
+spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
+                (JOBID BIGINT,\
+                JOBGROUP STRING,\
+                STAGEID INT,\
+                NAME STRING,\
+                SUBMISSIONTIME BIGINT,\
+                COMPLETIONTIME BIGINT,\
+                STAGEDURATION BIGINT,\
+                NUMTASKS INT,\
+                EXECUTORRUNTIME BIGINT,\
+                EXECUTORCPUTIME BIGINT,\
+                EXECUTORDESERIALIZETIME BIGINT,\
+                EXECUTORDESERIALIZECPUTIME BIGINT,\
+                RESULTSERIALIZATIONTIME BIGINT,\
+                JVMGCTIME BIGINT,\
+                RESULTSIZE BIGINT,\
+                DISKBYTESSPILLED BIGINT,\
+                MEMORYBYTESSPILLED BIGINT,\
+                PEAKEXECUTIONMEMORY BIGINT,\
+                RECORDSREAD BIGINT,\
+                BYTESREAD BIGINT,\
+                RECORDSWRITTEN BIGINT,\
+                BYTESWRITTEN BIGINT,\
+                SHUFFLEFETCHWAITTIME BIGINT,\
+                SHUFFLETOTALBYTESREAD BIGINT,\
+                SHUFFLETOTALBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBLOCKSFETCHED BIGINT,\
+                SHUFFLEREMOTEBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREADTODISK BIGINT,\
+                SHUFFLERECORDSREAD BIGINT,\
+                SHUFFLEWRITETIME BIGINT,\
+                SHUFFLEBYTESWRITTEN BIGINT,\
+                SHUFFLERECORDSWRITTEN BIGINT,\
+                INSERT_TIME FLOAT,\
+                )".format(sparkmetrics_dbname))
 
 #---------------------------------------------------
 #                READ SOURCE TABLES

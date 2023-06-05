@@ -109,20 +109,35 @@ sales_x_customers_df = spark.sql(salesandcustomers_sql)
 if (_DEBUG_):
     print("\tJOIN: CAR_SALES x CUSTOMER_DATA")
 
+print("sales_x_customers_df NUM PARTITIONS")
+#print(sales_x_customers_df.rdd.getNumPartitions())
+
 # Add geolocations based on ZIP
 sales_x_customers_x_geo_df = sales_x_customers_df.join(geo_data_df, "zip")
 if (_DEBUG_):
     print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF")
+
+print("sales_x_customers_x_geo_df NUM PARTITIONS")
+#print(sales_x_customers_x_geo_df.rdd.getNumPartitions())
+
+print("CHANGING SHUFFLE PARTITIONS TO 24")
+spark.conf.set("spark.sql.shuffle.partitions",24)
 
 # Add installation information (What part went into what car?)
 sales_x_customers_x_geo_x_carinstalls_df = sales_x_customers_x_geo_df.join(car_installs_df, ["VIN","model"])
 if (_DEBUG_):
     print("\tJOIN: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model)")
 
+print("sales_x_customers_x_geo_x_carinstalls_df NUM PARTITIONS")
+#print(sales_x_customers_x_geo_x_carinstalls_df.rdd.getNumPartitions())
+
 # Add factory information (For each part, in what factory was it made, from what machine, and at what time)
 sales_x_customers_x_geo_x_carinstalls_x_factory_df = sales_x_customers_x_geo_x_carinstalls_df.join(factory_data_df, ["serial_no"])
 if (_DEBUG_):
     print("\tJOIN QUERY: CAR_SALES x CUSTOMER_DATA x GEO_DATA_XREF (zip) x CAR_INSTALLS (vin, model) x EXPERIMENTAL_MOTORS (serial_no)")
+
+print("sales_x_customers_x_geo_x_carinstalls_x_factory_df NUM PARTITIONS")
+#print(sales_x_customers_x_geo_x_carinstalls_x_factory_df.rdd.getNumPartitions())
 
 # Triggering the Action
 sales_x_customers_x_geo_x_carinstalls_x_factory_df.count()

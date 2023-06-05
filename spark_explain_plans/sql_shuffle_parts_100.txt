@@ -1,0 +1,178 @@
+2.4.8.1.19.7215.0-117ENRICH application UI
+Jobs
+Stages
+Storage
+Environment
+Executors
+SQL
+Details for Query 0
+Submitted Time: 2023/06/05 00:13:37
+Duration: 37 s
+Succeeded Jobs: 4 5 6
+WholeStageCodegen1 ms (1 ms, 1 ms, 1 ms)
+WholeStageCodegen8 ms (1 ms, 1 ms, 1 ms)
+WholeStageCodegen697 ms (1 ms, 2 ms, 63 ms)
+WholeStageCodegen1.2 m (474 ms, 569 ms, 1.8 s)
+WholeStageCodegen1.2 m (491 ms, 574 ms, 2.0 s)
+WholeStageCodegen1.4 m (3.4 s, 9.9 s, 22.1 s)
+WholeStageCodegen1.5 s (272 ms, 300 ms, 332 ms)
+WholeStageCodegen5.3 s (293 ms, 788 ms, 907 ms)
+WholeStageCodegen1.6 s (475 ms, 538 ms, 556 ms)
+WholeStageCodegen5.6 s (148 ms, 909 ms, 1.1 s)
+WholeStageCodegen
+WholeStageCodegen8.4 s (170 ms, 1.5 s, 1.7 s)
+HashAggregate aggregate time total (min, med, max): 1 ms (1 ms, 1 ms, 1 ms)number of output rows: 1
+Exchange data size total (min, med, max): 1500.0 B (15.0 B, 15.0 B, 15.0 B)
+HashAggregate number of output rows: 100
+Project
+SortMergeJoin
+Sort peak memory total (min, med, max): 6.2 MB (64.0 KB, 64.0 KB, 64.0 KB)
+Exchange
+Project
+SortMergeJoin
+Sort sort time total (min, med, max): 10.5 s (63 ms, 74 ms, 540 ms)peak memory total (min, med, max): 9.4 GB (96.0 MB, 96.0 MB, 96.0 MB)
+Exchange data size total (min, med, max): 4.6 GB (39.0 MB, 1110.6 MB, 1823.1 MB)
+Project
+BroadcastHashJoin number of output rows: 103,762,750
+Project
+BroadcastHashJoin number of output rows: 592,634
+Project
+Filter number of output rows: 5,075,065
+Scan parquet sparkgen_pdefusco_052923.car_sales_pdefusco_052923 number of files: 84scan time total (min, med, max): 25.1 s (2.3 s, 3.5 s, 3.7 s)metadata time total (min, med, max): 72 ms (72 ms, 72 ms, 72 ms)size of files read total (min, med, max): 74.1 MB (74.1 MB, 74.1 MB, 74.1 MB)number of output rows: 5,075,065number of partitions read: 12
+BroadcastExchange data size (bytes): 8,388,608time to collect (ms): 1,375time to build (ms): 54time to broadcast (ms): 19
+Project
+Filter number of output rows: 118,139
+Scan parquet sparkgen_pdefusco_052923.customer_data_pdefusco_052923 number of files: 5scan time total (min, med, max): 1.5 s (256 ms, 297 ms, 323 ms)metadata time total (min, med, max): 0 ms (0 ms, 0 ms, 0 ms)size of files read total (min, med, max): 3.9 MB (3.9 MB, 3.9 MB, 3.9 MB)number of output rows: 118,139
+BroadcastExchange data size (bytes): 269,155,456time to collect (ms): 1,436time to build (ms): 1,662time to broadcast (ms): 389
+Project
+Filter number of output rows: 7,835,011
+Scan parquet sparkgen_pdefusco_052923.geo_data_xref_pdefusco_052923 number of files: 5scan time total (min, med, max): 3.6 s (293 ms, 480 ms, 517 ms)metadata time total (min, med, max): 0 ms (0 ms, 0 ms, 0 ms)size of files read total (min, med, max): 62.0 MB (62.0 MB, 62.0 MB, 62.0 MB)number of output rows: 7,835,011
+Sort sort time total (min, med, max): 2.5 s (5 ms, 6 ms, 216 ms)peak memory total (min, med, max): 3.2 GB (32.5 MB, 32.5 MB, 32.5 MB)
+Exchange data size total (min, med, max): 151.6 MB (30.3 MB, 30.3 MB, 30.3 MB)
+Project
+Filter number of output rows: 1,806,216
+Scan parquet sparkgen_pdefusco_052923.car_installs_pdefusco_052923 number of files: 5scan time total (min, med, max): 4.0 s (145 ms, 528 ms, 827 ms)metadata time total (min, med, max): 0 ms (0 ms, 0 ms, 0 ms)size of files read total (min, med, max): 38.3 MB (38.3 MB, 38.3 MB, 38.3 MB)number of output rows: 1,806,216
+Sort
+Exchange data size total (min, med, max): 360.6 MB (72.1 MB, 72.1 MB, 72.1 MB)
+Project
+Filter number of output rows: 7,879,522
+Scan parquet sparkgen_pdefusco_052923.experimental_motors_pdefusco_052923 number of files: 5scan time total (min, med, max): 5.3 s (168 ms, 745 ms, 1.1 s)metadata time total (min, med, max): 0 ms (0 ms, 0 ms, 0 ms)size of files read total (min, med, max): 139.2 MB (139.2 MB, 139.2 MB, 139.2 MB)number of output rows: 7,879,522
+Details
+== Parsed Logical Plan ==
+Aggregate [count(1) AS count#153L]
++- Project [serial_no#37, VIN#4, model#2, zip#24, id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, saleprice#3, latitude#61, longitude#62, id#34L, id#42L, factory_no#43, machine_no#44, part_no#46, timestamp#47, status#48]
+  +- Join Inner, (serial_no#37 = serial_no#45)
+     :- Project [VIN#4, model#2, zip#24, id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, saleprice#3, latitude#61, longitude#62, id#34L, serial_no#37]
+     :  +- Join Inner, ((VIN#4 = VIN#36) && (model#2 = model#35))
+     :     :- Project [zip#24, id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, saleprice#3, model#2, VIN#4, latitude#61, longitude#62]
+     :     :  +- Join Inner, (zip#24 = zip#56)
+     :     :     :- Project [id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, zip#24, saleprice#3, model#2, VIN#4]
+     :     :     :  +- Filter (cast(salary#23 as decimal(10,2)) > cast(cast(30000 as decimal(5,0)) as decimal(10,2)))
+     :     :     :     +- Join Inner, (customer_id#1 = customer_id#17)
+     :     :     :        :- SubqueryAlias `sales`
+     :     :     :        :  +- SubqueryAlias `sparkgen_pdefusco_052923`.`car_sales_pdefusco_052923`
+     :     :     :        :     +- Relation[id#0L,customer_id#1,model#2,saleprice#3,VIN#4,year#5,day#6,month#7] parquet
+     :     :     :        +- SubqueryAlias `customers`
+     :     :     :           +- SubqueryAlias `sparkgen_pdefusco_052923`.`customer_data_pdefusco_052923`
+     :     :     :              +- Relation[id#16L,customer_id#17,username#18,name#19,gender#20,email#21,birthdate#22,salary#23,zip#24] parquet
+     :     :     +- Project [postalcode#60 AS zip#56, latitude#61, longitude#62]
+     :     :        +- SubqueryAlias `sparkgen_pdefusco_052923`.`geo_data_xref_pdefusco_052923`
+     :     :           +- Relation[id#57L,country_code#58,state#59,postalcode#60,latitude#61,longitude#62] parquet
+     :     +- Project [id#34L, model#35, VIN#36, serial_no#37]
+     :        +- SubqueryAlias `sparkgen_pdefusco_052923`.`car_installs_pdefusco_052923`
+     :           +- Relation[id#34L,model#35,VIN#36,serial_no#37] parquet
+     +- Project [id#42L, factory_no#43, machine_no#44, serial_no#45, part_no#46, timestamp#47, status#48]
+        +- SubqueryAlias `sparkgen_pdefusco_052923`.`experimental_motors_pdefusco_052923`
+           +- Relation[id#42L,factory_no#43,machine_no#44,serial_no#45,part_no#46,timestamp#47,status#48] parquet
+
+== Analyzed Logical Plan ==
+count: bigint
+Aggregate [count(1) AS count#153L]
++- Project [serial_no#37, VIN#4, model#2, zip#24, id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, saleprice#3, latitude#61, longitude#62, id#34L, id#42L, factory_no#43, machine_no#44, part_no#46, timestamp#47, status#48]
+  +- Join Inner, (serial_no#37 = serial_no#45)
+     :- Project [VIN#4, model#2, zip#24, id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, saleprice#3, latitude#61, longitude#62, id#34L, serial_no#37]
+     :  +- Join Inner, ((VIN#4 = VIN#36) && (model#2 = model#35))
+     :     :- Project [zip#24, id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, saleprice#3, model#2, VIN#4, latitude#61, longitude#62]
+     :     :  +- Join Inner, (zip#24 = zip#56)
+     :     :     :- Project [id#16L, customer_id#17, username#18, name#19, gender#20, email#21, birthdate#22, salary#23, zip#24, saleprice#3, model#2, VIN#4]
+     :     :     :  +- Filter (cast(salary#23 as decimal(10,2)) > cast(cast(30000 as decimal(5,0)) as decimal(10,2)))
+     :     :     :     +- Join Inner, (customer_id#1 = customer_id#17)
+     :     :     :        :- SubqueryAlias `sales`
+     :     :     :        :  +- SubqueryAlias `sparkgen_pdefusco_052923`.`car_sales_pdefusco_052923`
+     :     :     :        :     +- Relation[id#0L,customer_id#1,model#2,saleprice#3,VIN#4,year#5,day#6,month#7] parquet
+     :     :     :        +- SubqueryAlias `customers`
+     :     :     :           +- SubqueryAlias `sparkgen_pdefusco_052923`.`customer_data_pdefusco_052923`
+     :     :     :              +- Relation[id#16L,customer_id#17,username#18,name#19,gender#20,email#21,birthdate#22,salary#23,zip#24] parquet
+     :     :     +- Project [postalcode#60 AS zip#56, latitude#61, longitude#62]
+     :     :        +- SubqueryAlias `sparkgen_pdefusco_052923`.`geo_data_xref_pdefusco_052923`
+     :     :           +- Relation[id#57L,country_code#58,state#59,postalcode#60,latitude#61,longitude#62] parquet
+     :     +- Project [id#34L, model#35, VIN#36, serial_no#37]
+     :        +- SubqueryAlias `sparkgen_pdefusco_052923`.`car_installs_pdefusco_052923`
+     :           +- Relation[id#34L,model#35,VIN#36,serial_no#37] parquet
+     +- Project [id#42L, factory_no#43, machine_no#44, serial_no#45, part_no#46, timestamp#47, status#48]
+        +- SubqueryAlias `sparkgen_pdefusco_052923`.`experimental_motors_pdefusco_052923`
+           +- Relation[id#42L,factory_no#43,machine_no#44,serial_no#45,part_no#46,timestamp#47,status#48] parquet
+
+== Optimized Logical Plan ==
+Aggregate [count(1) AS count#153L]
++- Project
+  +- Join Inner, (serial_no#37 = serial_no#45)
+     :- Project [serial_no#37]
+     :  +- Join Inner, ((VIN#4 = VIN#36) && (model#2 = model#35))
+     :     :- Project [model#2, VIN#4]
+     :     :  +- Join Inner, (zip#24 = zip#56)
+     :     :     :- Project [zip#24, model#2, VIN#4]
+     :     :     :  +- Join Inner, (customer_id#1 = customer_id#17)
+     :     :     :     :- Project [customer_id#1, model#2, VIN#4]
+     :     :     :     :  +- Filter ((isnotnull(customer_id#1) && isnotnull(VIN#4)) && isnotnull(model#2))
+     :     :     :     :     +- Relation[id#0L,customer_id#1,model#2,saleprice#3,VIN#4,year#5,day#6,month#7] parquet
+     :     :     :     +- Project [customer_id#17, zip#24]
+     :     :     :        +- Filter (((isnotnull(salary#23) && (salary#23 > 30000.00)) && isnotnull(customer_id#17)) && isnotnull(zip#24))
+     :     :     :           +- Relation[id#16L,customer_id#17,username#18,name#19,gender#20,email#21,birthdate#22,salary#23,zip#24] parquet
+     :     :     +- Project [postalcode#60 AS zip#56]
+     :     :        +- Filter isnotnull(postalcode#60)
+     :     :           +- Relation[id#57L,country_code#58,state#59,postalcode#60,latitude#61,longitude#62] parquet
+     :     +- Project [model#35, VIN#36, serial_no#37]
+     :        +- Filter ((isnotnull(VIN#36) && isnotnull(model#35)) && isnotnull(serial_no#37))
+     :           +- Relation[id#34L,model#35,VIN#36,serial_no#37] parquet
+     +- Project [serial_no#45]
+        +- Filter isnotnull(serial_no#45)
+           +- Relation[id#42L,factory_no#43,machine_no#44,serial_no#45,part_no#46,timestamp#47,status#48] parquet
+
+== Physical Plan ==
+*(12) HashAggregate(keys=[], functions=[count(1)], output=[count#153L])
++- Exchange SinglePartition, [id=#414]
+  +- *(11) HashAggregate(keys=[], functions=[partial_count(1)], output=[count#156L])
+     +- *(11) Project
+        +- *(11) SortMergeJoin [serial_no#37], [serial_no#45], Inner
+           :- *(8) Sort [serial_no#37 ASC NULLS FIRST], false, 0
+           :  +- Exchange hashpartitioning(serial_no#37, 100), [id=#399]
+           :     +- *(7) Project [serial_no#37]
+           :        +- *(7) SortMergeJoin [VIN#4, model#2], [VIN#36, model#35], Inner
+           :           :- *(4) Sort [VIN#4 ASC NULLS FIRST, model#2 ASC NULLS FIRST], false, 0
+           :           :  +- Exchange hashpartitioning(VIN#4, model#2, 100), [id=#385]
+           :           :     +- *(3) Project [model#2, VIN#4]
+           :           :        +- *(3) BroadcastHashJoin [zip#24], [zip#56], Inner, BuildRight
+           :           :           :- *(3) Project [zip#24, model#2, VIN#4]
+           :           :           :  +- *(3) BroadcastHashJoin [customer_id#1], [customer_id#17], Inner, BuildRight
+           :           :           :     :- *(3) Project [customer_id#1, model#2, VIN#4]
+           :           :           :     :  +- *(3) Filter ((isnotnull(customer_id#1) && isnotnull(VIN#4)) && isnotnull(model#2))
+           :           :           :     :     +- *(3) FileScan parquet sparkgen_pdefusco_052923.car_sales_pdefusco_052923[customer_id#1,model#2,VIN#4,month#7] Batched: true, Format: Parquet, Location: CatalogFileIndex[s3a://go01-demo/warehouse/tablespace/external/hive/sparkgen_pdefusco_052923.db/c..., PartitionCount: 12, PartitionFilters: [], PushedFilters: [IsNotNull(customer_id), IsNotNull(VIN), IsNotNull(model)], ReadSchema: struct<customer_id:int,model:string,VIN:string>
+           :           :           :     +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, true] as bigint))), [id=#375]
+           :           :           :        +- *(1) Project [customer_id#17, zip#24]
+           :           :           :           +- *(1) Filter (((isnotnull(salary#23) && (salary#23 > 30000.00)) && isnotnull(customer_id#17)) && isnotnull(zip#24))
+           :           :           :              +- *(1) FileScan parquet sparkgen_pdefusco_052923.customer_data_pdefusco_052923[customer_id#17,salary#23,zip#24] Batched: true, Format: Parquet, Location: InMemoryFileIndex[s3a://go01-demo/warehouse/tablespace/external/hive/sparkgen_pdefusco_052923.db/..., PartitionFilters: [], PushedFilters: [IsNotNull(salary), GreaterThan(salary,30000.00), IsNotNull(customer_id), IsNotNull(zip)], ReadSchema: struct<customer_id:int,salary:decimal(10,2),zip:int>
+           :           :           +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, true] as bigint))), [id=#380]
+           :           :              +- *(2) Project [postalcode#60 AS zip#56]
+           :           :                 +- *(2) Filter isnotnull(postalcode#60)
+           :           :                    +- *(2) FileScan parquet sparkgen_pdefusco_052923.geo_data_xref_pdefusco_052923[postalcode#60] Batched: true, Format: Parquet, Location: InMemoryFileIndex[s3a://go01-demo/warehouse/tablespace/external/hive/sparkgen_pdefusco_052923.db/..., PartitionFilters: [], PushedFilters: [IsNotNull(postalcode)], ReadSchema: struct<postalcode:int>
+           :           +- *(6) Sort [VIN#36 ASC NULLS FIRST, model#35 ASC NULLS FIRST], false, 0
+           :              +- Exchange hashpartitioning(VIN#36, model#35, 100), [id=#391]
+           :                 +- *(5) Project [model#35, VIN#36, serial_no#37]
+           :                    +- *(5) Filter ((isnotnull(VIN#36) && isnotnull(model#35)) && isnotnull(serial_no#37))
+           :                       +- *(5) FileScan parquet sparkgen_pdefusco_052923.car_installs_pdefusco_052923[model#35,VIN#36,serial_no#37] Batched: true, Format: Parquet, Location: InMemoryFileIndex[s3a://go01-demo/warehouse/tablespace/external/hive/sparkgen_pdefusco_052923.db/..., PartitionFilters: [], PushedFilters: [IsNotNull(VIN), IsNotNull(model), IsNotNull(serial_no)], ReadSchema: struct<model:string,VIN:string,serial_no:string>
+           +- *(10) Sort [serial_no#45 ASC NULLS FIRST], false, 0
+              +- Exchange hashpartitioning(serial_no#45, 100), [id=#405]
+                 +- *(9) Project [serial_no#45]
+                    +- *(9) Filter isnotnull(serial_no#45)
+                       +- *(9) FileScan parquet sparkgen_pdefusco_052923.experimental_motors_pdefusco_052923[serial_no#45] Batched: true, Format: Parquet, Location: InMemoryFileIndex[s3a://go01-demo/warehouse/tablespace/external/hive/sparkgen_pdefusco_052923.db/..., PartitionFilters: [], PushedFilters: [IsNotNull(serial_no)], ReadSchema: struct<serial_no:string>
