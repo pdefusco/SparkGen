@@ -37,21 +37,19 @@
 # #  Author(s): Paul de Fusco
 #***************************************************************************/
 
-!pip3 install -r requirements.txt
+import random
+import configparser
+import json
+import sys
+import os
 
 import numpy as np
 import pandas as pd
 from os.path import exists
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
-from cde_resource_files.datagen import *
+from datagen import *
 from datetime import datetime
-
-import random
-import configparser
-import json
-import sys
-import os
 
 ## CDE PROPERTIES
 config = configparser.ConfigParser()
@@ -64,11 +62,6 @@ username=config.get("general","username")
 now = datetime.now()
 
 timestamp = datetime.timestamp(now)
-
-## CML PROPERTIES
-data_lake_name = "s3a://go01-demo/"
-s3BucketName = "s3a://go01-demo/sparkgen"
-username = "pdefusco_060723"
 
 print("\nRunning as Username: ", username)
 
@@ -135,7 +128,7 @@ def check_partitions(partitions):
     return partitions
   return partitions
 
-ROW_COUNT_car_installs = random.randint(10000, 100000)
+ROW_COUNT_car_installs = random.randint(100000, 100000)
 UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
 PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
 PARTITIONS_NUM_car_installs = check_partitions(PARTITIONS_NUM_car_installs)
@@ -150,7 +143,7 @@ UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
 PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
 PARTITIONS_NUM_customer_data = check_partitions(PARTITIONS_NUM_customer_data)
 
-ROW_COUNT_factory_data = random.randint(10000, 10000)
+ROW_COUNT_factory_data = random.randint(100000, 100000)
 UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
 PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
 PARTITIONS_NUM_factory_data = check_partitions(PARTITIONS_NUM_factory_data)
@@ -217,29 +210,17 @@ spark.sql("SHOW DATABASES").show()
 #               POPULATE TABLES
 #---------------------------------------------------
 
-#car_sales_df.write.mode("overwrite").partitionBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
-#car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{1}'.format(dbname, username), format="parquet")
-#factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
-#customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
-#geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
+car_sales_df.write.mode("overwrite").partitionBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
+car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{1}'.format(dbname, username), format="parquet")
+factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
+customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
+geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
 
-#car_sales_df.write.parquet("data/carsales.parquet")
-#car_installs_df.write.parquet("data/carinstalls.parquet")
-#factory_data_df.write.parquet("data/factorydata.parquet")
-#customer_data_df.write.parquet("data/customerdata.parquet")
-#geo_data_df.write.parquet("data/geodata.parquet")
-
-car_sales_df.repartition(1).write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/cde119/car_sales")
-car_installs_df.repartition(1).write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/cde119/car_installs")
-factory_data_df.repartition(1).write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/cde119/factory_data")
-customer_data_df.repartition(1).write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/cde119/customer_data")
-geo_data_df.repartition(1).write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/cde119/geo_data")
-
-#car_sales_df.repartition(1).write.csv("data/car_sales")
-#car_installs_df.repartition(1).write.csv("data/car_installs")
-#factory_data_df.repartition(1).write.csv("data/factory_data")
-#customer_data_df.repartition(1).write.csv("data/customer_data")
-#geo_data_df.repartition(1).write.csv("data/geo_data")
+car_sales_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/car_sales")
+car_installs_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/car_installs")
+factory_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/factory_data")
+customer_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/customer_data")
+geo_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/geo_data")
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 

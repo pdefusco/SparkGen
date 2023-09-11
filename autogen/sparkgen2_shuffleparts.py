@@ -49,7 +49,7 @@ import random
 ## CML PROPERTIES
 data_lake_name = "s3a://go01-demo/"
 s3BucketName = "s3a://go01-demo/sparkgen"
-username = "pdefusco_052923"
+username = "pdefusco_060723"
 
 print("Running as Username: ", username)
 
@@ -120,8 +120,8 @@ if (_DEBUG_):
 print("sales_x_customers_x_geo_df NUM PARTITIONS")
 #print(sales_x_customers_x_geo_df.rdd.getNumPartitions())
 
-print("CHANGING SHUFFLE PARTITIONS TO 24")
-spark.conf.set("spark.sql.shuffle.partitions",24)
+print("CHANGING SHUFFLE PARTITIONS TO 48")
+spark.conf.set("spark.sql.shuffle.partitions",48)
 
 # Add installation information (What part went into what car?)
 sales_x_customers_x_geo_x_carinstalls_df = sales_x_customers_x_geo_df.join(car_installs_df, ["VIN","model"])
