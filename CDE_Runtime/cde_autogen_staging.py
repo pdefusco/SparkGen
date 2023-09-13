@@ -140,7 +140,7 @@ print("\tPOPULATE TABLE(S) COMPLETED")
 print("JOB COMPLETED.\n\n")
 
 table_data = [{
-    "DAY_OF_RUN" : today,
+    "RUN_ID" : today,
     "ROW_COUNT_car_sales" : ROW_COUNT_car_sales,
     "UNIQUE_VALS_car_sales" : UNIQUE_VALS_car_sales,
     "PARTITIONS_NUM_car_sales" : PARTITIONS_NUM_car_sales,

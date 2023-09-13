@@ -22,8 +22,8 @@ cde resource upload --name sparkgenfiles --local-path CDE_Runtime/datagen.py --v
 
 cde resource upload --name sparkgenfiles --local-path CDE_Runtime/parameters.conf --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
 
-cde job create --name sparkgen_job_target --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_target.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde job create --name sparkgen_job_target --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_target.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1 --arg RUN_ID
 
-cde job create --name sparkgen_job_staging --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_staging.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde job create --name sparkgen_job_staging --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_staging.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1 --arg RUN_ID
 
 #cde job run --name sparkgen_job --executor-memory "4g" --executor-cores 4 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1

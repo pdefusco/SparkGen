@@ -52,6 +52,16 @@ from datetime import datetime
 now = datetime.now()
 today = now.timestamp()
 
+# in the pyspark application code
+
+import sys
+print(sys.argv)
+
+# will print
+# ['/app/mount/variable-argument-example.py', 'bar']
+
+#print(RUN_ID)
+
 ## CDE PROPERTIES
 config = configparser.ConfigParser()
 config.read('/app/mount/parameters.conf')
@@ -215,7 +225,7 @@ print("SPARK MEASURE METRICS TRACKING\n")
 spark.sql("DROP TABLE IF EXISTS {}.TABLE_METRICS_TABLE".format(dbname))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.TABLE_METRICS_TABLE\
-                (DAY_OF_RUN FLOAT,\
+                (RUN_ID FLOAT,\
                 ROW_COUNT_car_sales BIGINT,\
                 UNIQUE_VALS_car_sales BIGINT,\
                 PARTITIONS_NUM_car_sales BIGINT,\
@@ -226,7 +236,7 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.TABLE_METRICS_TABLE\
 spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(dbname))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
-                (DAY_OF_RUN FLOAT,\
+                (RUN_ID FLOAT,\
                 JOBID STRING,\
                 JOBGROUP STRING,\
                 STAGEID STRING,\
@@ -263,7 +273,7 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
                 SHUFFLERECORDSWRITTEN BIGINT)".format(dbname))
 
 table_data = [{
-    "DAY_OF_RUN" : today,
+    "RUN_ID" : today,
     "ROW_COUNT_car_sales" : ROW_COUNT_car_sales,
     "UNIQUE_VALS_car_sales" : UNIQUE_VALS_car_sales,
     "PARTITIONS_NUM_car_sales" : PARTITIONS_NUM_car_sales,

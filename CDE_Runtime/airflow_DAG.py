@@ -45,13 +45,16 @@ from airflow import DAG
 from cloudera.cdp.airflow.operators.cde_operator import CDEJobRunOperator
 from cloudera.cdp.airflow.operators.cdw_operator import CDWOperator
 from airflow.operators.bash import BashOperator
+from datetime import datetime
 
+now = datetime.now()
+today = now.timestamp()
 username = "pdefusco"
 dbname = "SPARKGEN_{}".format(username)
 
 print("Running as Username: ", username)
 
-dag_name = 'airflow-dag'.format(username)
+dag_name = 'sparkgen-dag'.format(username)
 
 default_args = {
         'owner': 'pauldefusco',
@@ -69,10 +72,18 @@ airflow_cdw_dag = DAG(
         is_paused_upon_creation=False
         )
 
+start = DummyOperator(
+    task_id="start",
+    dag=intro_dag
+)
+
 staging_step = CDEJobRunOperator(
         task_id='create_staging_table',
         dag=airflow_cdw_dag,
-        job_name='sparkgen_job_staging' #Must match name of CDE Spark Job in the CDE Jobs UI
+        job_name='sparkgen_job_target_2', #Must match name of CDE Spark Job in the CDE Jobs UI
+        variables={
+          'RUN_ID' = datetime.now().timestamp()
+          }
         )
 
 mergeinto_step = CDEJobRunOperator(
@@ -89,11 +100,11 @@ SHOW DATABASES LIKE '{}'
 dwstep = CDWOperator(
     task_id='dataset-etl-cdw',
     dag=airflow_cdw_dag,
-    cli_conn_id='azure_cdw_connection',
+    cli_conn_id='cdw_connection',
     hql=dwquery,
     schema='default',
     use_proxy_user=False,
     query_isolation=True
 )
 
-staging_step >> mergeinto_step >> dwstep
+start >> staging_step >> mergeinto_step >> dwstep
