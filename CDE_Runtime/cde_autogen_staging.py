@@ -42,14 +42,15 @@ import configparser
 import json
 import sys
 import os
-
-import numpy as np
-import pandas as pd
 from os.path import exists
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
+from pyspark.sql.functions import lit
 from datagen import *
 from datetime import datetime
+
+now = datetime.now()
+today = now.timestamp()
 
 ## CDE PROPERTIES
 config = configparser.ConfigParser()
@@ -57,11 +58,6 @@ config.read('/app/mount/parameters.conf')
 data_lake_name=config.get("general","data_lake_name")
 s3BucketName=config.get("general","s3BucketName")
 username=config.get("general","username")
-
-# current date and time
-now = datetime.now()
-
-timestamp = datetime.timestamp(now)
 
 print("\nRunning as Username: ", username)
 
@@ -101,30 +97,10 @@ def check_partitions(partitions):
     return partitions
   return partitions
 
-ROW_COUNT_car_installs = random.randint(100000, 100000)
-UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
-PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
-PARTITIONS_NUM_car_installs = check_partitions(PARTITIONS_NUM_car_installs)
-
 ROW_COUNT_car_sales = random.randint(500000, 500000)
 UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
 PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
 PARTITIONS_NUM_car_sales = check_partitions(PARTITIONS_NUM_car_sales)
-
-ROW_COUNT_customer_data = random.randint(500000, 500000)
-UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
-PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
-PARTITIONS_NUM_customer_data = check_partitions(PARTITIONS_NUM_customer_data)
-
-ROW_COUNT_factory_data = random.randint(100000, 100000)
-UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
-PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
-PARTITIONS_NUM_factory_data = check_partitions(PARTITIONS_NUM_factory_data)
-
-ROW_COUNT_geo_data = random.randint(10000, 100000)
-UNIQUE_VALS_geo_data = random.randint(500, ROW_COUNT_geo_data-1)
-PARTITIONS_NUM_geo_data = round(ROW_COUNT_geo_data / UNIQUE_VALS_geo_data)
-PARTITIONS_NUM_geo_data = check_partitions(PARTITIONS_NUM_geo_data)
 
 print("SPARKGEN PIPELINE SPARK HYPERPARAMS")
 print("\n")
@@ -132,66 +108,20 @@ print("x: {}".format(x))
 print("y: {}".format(y))
 print("z: {}".format(z))
 print("\n")
-print("ROW_COUNT_car_installs: {}".format(ROW_COUNT_car_installs))
-print("UNIQUE_VALS_car_installs: {}".format(UNIQUE_VALS_car_installs))
-print("PARTITIONS_NUM_car_installs: {}".format(PARTITIONS_NUM_car_installs))
-print("\n")
 print("ROW_COUNT_car_sales: {}".format(ROW_COUNT_car_sales))
 print("UNIQUE_VALS_car_sales: {}".format(UNIQUE_VALS_car_sales))
 print("PARTITIONS_NUM_car_sales: {}".format(PARTITIONS_NUM_car_sales))
-print("\n")
-print("ROW_COUNT_customer_data: {}".format(ROW_COUNT_customer_data))
-print("UNIQUE_VALS_customer_data: {}".format(UNIQUE_VALS_customer_data))
-print("PARTITIONS_NUM_customer_data: {}".format(PARTITIONS_NUM_customer_data))
-print("\n")
-print("ROW_COUNT_factory_data: {}".format(ROW_COUNT_factory_data))
-print("UNIQUE_VALS_factory_data: {}".format(UNIQUE_VALS_factory_data))
-print("PARTITIONS_NUM_factory_data: {}".format(PARTITIONS_NUM_factory_data))
-print("\n")
-print("ROW_COUNT_geo_data: {}".format(ROW_COUNT_geo_data))
-print("UNIQUE_VALS_geo_data: {}".format(UNIQUE_VALS_geo_data))
-print("PARTITIONS_NUM_geo_data: {}".format(PARTITIONS_NUM_geo_data))
-print("\n")
-car_installs_df  = dg.car_installs_gen(PARTITIONS_NUM_car_installs, ROW_COUNT_car_installs, UNIQUE_VALS_car_installs, True)
-car_sales_df     = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car_sales, UNIQUE_VALS_car_sales, True)
-customer_data_df = dg.customer_gen(x, y, z, PARTITIONS_NUM_customer_data, ROW_COUNT_customer_data, UNIQUE_VALS_customer_data, True)
-factory_data_df  = dg.factory_gen(x, y, z, PARTITIONS_NUM_factory_data, ROW_COUNT_factory_data, UNIQUE_VALS_factory_data, True)
-geo_data_df      = dg.geo_gen(x, y, z, PARTITIONS_NUM_geo_data, ROW_COUNT_geo_data, UNIQUE_VALS_geo_data, True)
 
-#---------------------------------------------------
-#       SQL CLEANUP: DATABASES, TABLES, VIEWS
-#---------------------------------------------------
+car_sales_df = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car_sales, UNIQUE_VALS_car_sales, True)
 
-# Show catalog and database
-print("REMOVE PRIOR RUN DATABASE")
-spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
-print("\n")
-##---------------------------------------------------
-##                 CREATE DATABASES
-##---------------------------------------------------
-
-spark.sql("CREATE DATABASE {}".format(dbname))
-spark.sql("USE {}".format(dbname))
-print("\n")
-# Show databases
-print("SHOW DATABASES LIKE '{}'".format(dbname))
-spark.sql("SHOW DATABASES LIKE '{}'".format(dbname)).show()
-print("\n")
 #---------------------------------------------------
 #               POPULATE TABLES
 #---------------------------------------------------
 print("CREATING ICBERG TABLES FROM SPARK DATAFRAMES \n")
 print("\n")
 
-car_sales_df.writeTo("{0}.CAR_SALES_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-car_installs_df.writeTo("{0}.CAR_INSTALLS_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-factory_data_df.writeTo("{0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-customer_data_df.writeTo("{0}.CUSTOMER_DATA_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-geo_data_df.writeTo("{0}.GEO_DATA_XREF_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
+car_sales_df.writeTo("{0}.CAR_SALES_STAGING_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
 
-print("SHOW TABLES FROM {}".format(dbname))
-spark.sql("SHOW TABLES FROM {}".format(dbname)).show()
-print("\n")
 '''car_sales_df.write.mode("overwrite").partitionedBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
 car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{1}'.format(dbname, username), format="parquet")
 factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
@@ -208,3 +138,20 @@ geo_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/d
 print("\tPOPULATE TABLE(S) COMPLETED")
 
 print("JOB COMPLETED.\n\n")
+
+table_data = [{
+    "DAY_OF_RUN" : today,
+    "ROW_COUNT_car_sales" : ROW_COUNT_car_sales,
+    "UNIQUE_VALS_car_sales" : UNIQUE_VALS_car_sales,
+    "PARTITIONS_NUM_car_sales" : PARTITIONS_NUM_car_sales,
+    "x" : x,
+    "y" : y,
+    "z" : z
+}]
+
+table_metrics_df = spark.createDataFrame(table_data)
+
+table_metrics_df.registerTempTable("TABLE_METRICS_TEMPTABLE")
+
+print("INSERT INTO {}.TABLE_METRICS_TABLE SELECT * FROM TABLE_METRICS_TEMPTABLE".format(dbname))
+spark.sql("INSERT INTO {}.TABLE_METRICS_TABLE SELECT * FROM TABLE_METRICS_TEMPTABLE".format(dbname))
