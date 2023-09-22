@@ -1,5 +1,5 @@
 #****************************************************************************
-# (C) Cloudera, Inc. 2020-2022
+# (C) Cloudera, Inc. 2020-2023
 #  All rights reserved.
 #
 #  Applicable Open Source License: GNU Affero General Public License v3.0
@@ -37,19 +37,19 @@
 # #  Author(s): Paul de Fusco
 #***************************************************************************/
 
+import random
+import configparser
+import json
+import sys
+import os
+from os.path import exists
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 from pyspark.sql.functions import lit
-import configparser
-from sparkmeasure import StageMetrics
+from datagen import *
 from datetime import datetime
-import os
-import random
-from datetime import datetime
-import sys
-print(sys.argv)
 
-timestamp = float(sys.argv[1])
+timestamp = datetime.now().timestamp()
 
 ## CDE PROPERTIES
 config = configparser.ConfigParser()
@@ -65,13 +65,8 @@ dbname = "SPARKGEN_{}".format(username)
 print("\nUsing DB Name: ", dbname)
 
 #---------------------------------------------------
-#               CREATE SPARK SESSION
+#               CREATE SPARK SESSION WITH ICEBERG
 #---------------------------------------------------
-
-### CDE JAR OPTIONS
-# Adding the following in your spark session in CDE won't work. You must add the two configs directly as CDE Job configurations
-#.config("spark.jars","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
-#.config("spark.driver.extraClassPath","/app/mount/{}/spark-measure_2.13-0.23.jar".format(CDE_RESOURCE_NAME))\
 
 spark = SparkSession \
     .builder \
@@ -82,73 +77,63 @@ spark = SparkSession \
     .config("spark.kubernetes.access.hadoopFileSystems", data_lake_name)\
     .getOrCreate()
 
-# Show catalog and database
-print("SHOW CURRENT NAMESPACE")
-spark.sql("SHOW CURRENT NAMESPACE").show()
-spark.sql("USE {}".format(dbname))
+print("SPARK MEASURE METRICS TRACKING\n")
 
-# Show catalog and database
-print("SHOW NEW NAMESPACE IN USE\n")
-spark.sql("SHOW CURRENT NAMESPACE").show()
+spark.sql("DROP TABLE IF EXISTS {}.TABLE_METRICS_TABLE".format(dbname))
 
-_DEBUG_ = False
+spark.sql("CREATE TABLE IF NOT EXISTS {}.TABLE_METRICS_TABLE\
+                (RUN_ID FLOAT,\
+                ROW_COUNT_car_sales_gen BIGINT,\
+                UNIQUE_VALS_car_sales_gen BIGINT,\
+                PARTITIONS_NUM_car_sales_gen BIGINT,\
+                x_gen BIGINT,\
+                y_gen BIGINT,\
+                z_gen BIGINT,\
+                ROW_COUNT_car_sales_source_sample BIGINT,\
+                UNIQUE_VALS_car_sales_source_sample BIGINT,\
+                ROW_PERCENT_car_sales_source_sample BIGINT,\
+                ROW_COUNT_car_sales_staging BIGINT,\
+                UNIQUE_VALS_car_sales_staging BIGINT,\
+                ROW_PERCENT_car_sales_staging BIGINT)".format(dbname))
 
-stagemetrics = StageMetrics(spark)
+spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(dbname))
 
-#---------------------------------------------------
-#                READ SOURCE TABLES
-#---------------------------------------------------
-print("JOB STARTED...")
-car_sales_df     = spark.sql("SELECT * FROM {0}.CAR_SALES_{1}".format(dbname, username)) #could also checkpoint here but need to set checkpoint dir
+spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
+                (RUN_ID FLOAT,\
+                JOBID STRING,\
+                JOBGROUP STRING,\
+                STAGEID STRING,\
+                NAME STRING,\
+                SUBMISSIONTIME BIGINT,\
+                COMPLETIONTIME BIGINT,\
+                STAGEDURATION BIGINT,\
+                NUMTASKS INT,\
+                EXECUTORRUNTIME BIGINT,\
+                EXECUTORCPUTIME BIGINT,\
+                EXECUTORDESERIALIZETIME BIGINT,\
+                EXECUTORDESERIALIZECPUTIME BIGINT,\
+                RESULTSERIALIZATIONTIME BIGINT,\
+                JVMGCTIME BIGINT,\
+                RESULTSIZE BIGINT,\
+                DISKBYTESSPILLED BIGINT,\
+                MEMORYBYTESSPILLED BIGINT,\
+                PEAKEXECUTIONMEMORY BIGINT,\
+                RECORDSREAD BIGINT,\
+                BYTESREAD BIGINT,\
+                RECORDSWRITTEN BIGINT,\
+                BYTESWRITTEN BIGINT,\
+                SHUFFLEFETCHWAITTIME BIGINT,\
+                SHUFFLETOTALBYTESREAD BIGINT,\
+                SHUFFLETOTALBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBLOCKSFETCHED BIGINT,\
+                SHUFFLEREMOTEBLOCKSFETCHED BIGINT,\
+                SHUFFLELOCALBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREAD BIGINT,\
+                SHUFFLEREMOTEBYTESREADTODISK BIGINT,\
+                SHUFFLERECORDSREAD BIGINT,\
+                SHUFFLEWRITETIME BIGINT,\
+                SHUFFLEBYTESWRITTEN BIGINT,\
+                SHUFFLERECORDSWRITTEN BIGINT)".format(dbname))
 
-print("\tREAD TABLE(S) COMPLETED")
-
-#---------------------------------------------------
-#             JOIN DATA INTO ONE TABLE
-#---------------------------------------------------
-# SQL way to do things
-stagemetrics.begin()
-
-#---------------------------------------------------
-#               ICEBERG MERGE INTO
-#---------------------------------------------------
-
-# PRE-INSERT COUNT
-print("\n")
-print("PRE-MERGE COUNT")
-spark.sql("SELECT COUNT(*) FROM spark_catalog.{0}.CAR_SALES_{1}".format(dbname, username)).show()
-
-ICEBERG_MERGE_INTO = "MERGE INTO spark_catalog.{0}.CAR_SALES_{1} t\
-                      USING (SELECT * FROM spark_catalog.{0}.CAR_SALES_STAGING_{1}) s\
-                      ON t.id = s.id\
-                      WHEN MATCHED THEN UPDATE SET t.saleprice = s.saleprice\
-                      WHEN NOT MATCHED THEN INSERT *".format(dbname, username)
-
-print("\n")
-print("EXECUTING ICEBERG MERGE INTO QUERY")
-print("\n")
-print(ICEBERG_MERGE_INTO)
-spark.sql(ICEBERG_MERGE_INTO)
-
-# PRE-INSERT COUNT
-print("\n")
-print("POST-MERGE COUNT")
-print("\n")
-spark.sql("SELECT COUNT(*) FROM spark_catalog.{0}.CAR_SALES_{1}".format(dbname, username)).show()
-
-stagemetrics.end()
-stagemetrics.print_report()
-
-#Saving metrics to df
-stage_metrics_df = stagemetrics.create_stagemetrics_DF("PerfStageMetrics")
-stage_metrics_df = stage_metrics_df.withColumn("RUN_ID", lit(timestamp))
-
-stage_metrics_df.createOrReplaceTempView("STAGE_METRICS_TEMPTABLE")
-
-print("COLS\n")
-print(stage_metrics_df.dtypes)
-
-print("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(dbname))
-spark.sql("INSERT INTO {}.STAGE_METRICS_TABLE SELECT * FROM STAGE_METRICS_TEMPTABLE".format(dbname))
-
-print("JOB COMPLETED!\n\n")
+print("CURRENT TABLES IN {}".format(dbname))
+spark.sql("SHOW TABLES IN {}".format(dbname)).show()

@@ -40,71 +40,56 @@
 # Airflow DAG
 from datetime import datetime, timedelta
 from dateutil import parser
-import pendulum
 from airflow import DAG
 from cloudera.cdp.airflow.operators.cde_operator import CDEJobRunOperator
-from cloudera.cdp.airflow.operators.cdw_operator import CDWOperator
-from airflow.operators.bash import BashOperator
-from datetime import datetime
+from airflow.operators.dummy_operator import DummyOperator
 
-now = datetime.now()
-today = now.timestamp()
 username = "pdefusco"
 dbname = "SPARKGEN_{}".format(username)
 
 print("Running as Username: ", username)
 
-dag_name = 'sparkgen-dag'.format(username)
+dag_name = 'sparkgen_dag_prod_v2'
 
 default_args = {
-        'owner': 'pauldefusco',
-        'retry_delay': timedelta(seconds=5),
+        'owner':'pauldefusco',
+        'start_date': datetime(2023,2,1,1),
         'depends_on_past': False,
-        'start_date': pendulum.datetime(2020, 1, 1, tz="Europe/Amsterdam"),
+        'retries':1,
+        'schedule_interval':'*/5 * * * *', #timedelta(minutes=5)
+        'retry_delay': timedelta(minutes=15),
         'end_date': datetime(2024,9,30,8)
         }
 
-airflow_cdw_dag = DAG(
+airflow_dag = DAG(
         dag_name,
         default_args=default_args,
-        schedule_interval='@daily',
         catchup=False,
-        is_paused_upon_creation=False
+        is_paused_upon_creation=False,
+        params={
+         "run_id": datetime.now().timestamp()
+            },
         )
 
 start = DummyOperator(
-    task_id="start",
-    dag=intro_dag
+        task_id="start",
+        dag=airflow_dag
 )
 
 staging_step = CDEJobRunOperator(
-        task_id='create_staging_table',
-        dag=airflow_cdw_dag,
-        job_name='sparkgen_job_target_2', #Must match name of CDE Spark Job in the CDE Jobs UI
-        variables={
-          'RUN_ID' = datetime.now().timestamp()
-          }
+        task_id='create-staging-table',
+        dag=airflow_dag,
+        job_name='sparkgen_job_staging', #Must match name of CDE Spark Job in the CDE Jobs UI
+        variables={'RUN_ID' : '{{ params.run_id }}'},
+        trigger_rule='all_success',
         )
 
 mergeinto_step = CDEJobRunOperator(
-        task_id='iceberg_mergeinto',
-        dag=airflow_cdw_dag,
-        job_name='sparkgen_mergeinto' #Must match name of CDE Spark Job in the CDE Jobs UI
+        task_id='iceberg-merge-into',
+        dag=airflow_dag,
+        job_name='sparkgen_mergeinto', #Must match name of CDE Spark Job in the CDE Jobs UI
+        variables={'RUN_ID' : '{{ params.run_id }}'},
+        trigger_rule='all_success',
         )
 
-dwquery = """
-# Show databases
-SHOW DATABASES LIKE '{}'
-""".format(dbname))
-
-dwstep = CDWOperator(
-    task_id='dataset-etl-cdw',
-    dag=airflow_cdw_dag,
-    cli_conn_id='cdw_connection',
-    hql=dwquery,
-    schema='default',
-    use_proxy_user=False,
-    query_isolation=True
-)
-
-start >> staging_step >> mergeinto_step >> dwstep
+start >> staging_step >> mergeinto_step

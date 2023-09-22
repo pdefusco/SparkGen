@@ -48,19 +48,9 @@ import pyspark.sql.functions as F
 from pyspark.sql.functions import lit
 from datagen import *
 from datetime import datetime
+from pyspark.sql.types import StructType, StructField, FloatType, LongType
 
-now = datetime.now()
-today = now.timestamp()
-
-# in the pyspark application code
-
-import sys
-print(sys.argv)
-
-# will print
-# ['/app/mount/variable-argument-example.py', 'bar']
-
-#print(RUN_ID)
+timestamp = datetime.now().timestamp()
 
 ## CDE PROPERTIES
 config = configparser.ConfigParser()
@@ -94,9 +84,9 @@ spark = SparkSession \
 
 dg = DataGen(spark, username)
 
-x = random.randint(1, 3)
-y = random.randint(1, 4)
-z = random.randint(2, 5)
+x_gen = random.randint(1, 3)
+y_gen = random.randint(1, 4)
+z_gen = random.randint(2, 5)
 
 def check_partitions(partitions):
   if partitions > 100:
@@ -107,80 +97,27 @@ def check_partitions(partitions):
     return partitions
   return partitions
 
-ROW_COUNT_car_installs = random.randint(100000, 100000)
-UNIQUE_VALS_car_installs = random.randint(500, ROW_COUNT_car_installs-1)
-PARTITIONS_NUM_car_installs = round(ROW_COUNT_car_installs / UNIQUE_VALS_car_installs)
-PARTITIONS_NUM_car_installs = check_partitions(PARTITIONS_NUM_car_installs)
-
-ROW_COUNT_car_sales = random.randint(500000, 500000)
-UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
-PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
-PARTITIONS_NUM_car_sales = check_partitions(PARTITIONS_NUM_car_sales)
-
-ROW_COUNT_customer_data = random.randint(500000, 500000)
-UNIQUE_VALS_customer_data = random.randint(500, ROW_COUNT_customer_data-1)
-PARTITIONS_NUM_customer_data = round(ROW_COUNT_customer_data / UNIQUE_VALS_customer_data)
-PARTITIONS_NUM_customer_data = check_partitions(PARTITIONS_NUM_customer_data)
-
-ROW_COUNT_factory_data = random.randint(100000, 100000)
-UNIQUE_VALS_factory_data = random.randint(500, ROW_COUNT_factory_data-1)
-PARTITIONS_NUM_factory_data = round(ROW_COUNT_factory_data / UNIQUE_VALS_factory_data)
-PARTITIONS_NUM_factory_data = check_partitions(PARTITIONS_NUM_factory_data)
-
-ROW_COUNT_geo_data = random.randint(10000, 100000)
-UNIQUE_VALS_geo_data = random.randint(500, ROW_COUNT_geo_data-1)
-PARTITIONS_NUM_geo_data = round(ROW_COUNT_geo_data / UNIQUE_VALS_geo_data)
-PARTITIONS_NUM_geo_data = check_partitions(PARTITIONS_NUM_geo_data)
+ROW_COUNT_car_sales_gen = random.randint(500000, 500000)
+UNIQUE_VALS_car_sales_gen = random.randint(500, ROW_COUNT_car_sales_gen-1)
+PARTITIONS_NUM_car_sales_gen = round(ROW_COUNT_car_sales_gen / UNIQUE_VALS_car_sales_gen)
+PARTITIONS_NUM_car_sales_gen = check_partitions(PARTITIONS_NUM_car_sales_gen)
 
 print("SPARKGEN PIPELINE SPARK HYPERPARAMS")
 print("\n")
-print("x: {}".format(x))
-print("y: {}".format(y))
-print("z: {}".format(z))
+print("x_gen: {}".format(x_gen))
+print("y_gen: {}".format(y_gen))
+print("z_gen: {}".format(z_gen))
 print("\n")
-print("ROW_COUNT_car_installs: {}".format(ROW_COUNT_car_installs))
-print("UNIQUE_VALS_car_installs: {}".format(UNIQUE_VALS_car_installs))
-print("PARTITIONS_NUM_car_installs: {}".format(PARTITIONS_NUM_car_installs))
-print("\n")
-print("ROW_COUNT_car_sales: {}".format(ROW_COUNT_car_sales))
-print("UNIQUE_VALS_car_sales: {}".format(UNIQUE_VALS_car_sales))
-print("PARTITIONS_NUM_car_sales: {}".format(PARTITIONS_NUM_car_sales))
-print("\n")
-print("ROW_COUNT_customer_data: {}".format(ROW_COUNT_customer_data))
-print("UNIQUE_VALS_customer_data: {}".format(UNIQUE_VALS_customer_data))
-print("PARTITIONS_NUM_customer_data: {}".format(PARTITIONS_NUM_customer_data))
-print("\n")
-print("ROW_COUNT_factory_data: {}".format(ROW_COUNT_factory_data))
-print("UNIQUE_VALS_factory_data: {}".format(UNIQUE_VALS_factory_data))
-print("PARTITIONS_NUM_factory_data: {}".format(PARTITIONS_NUM_factory_data))
-print("\n")
-print("ROW_COUNT_geo_data: {}".format(ROW_COUNT_geo_data))
-print("UNIQUE_VALS_geo_data: {}".format(UNIQUE_VALS_geo_data))
-print("PARTITIONS_NUM_geo_data: {}".format(PARTITIONS_NUM_geo_data))
-print("\n")
+print("ROW_COUNT_car_sales: {}".format(ROW_COUNT_car_sales_gen))
+print("UNIQUE_VALS_car_sales: {}".format(UNIQUE_VALS_car_sales_gen))
+print("PARTITIONS_NUM_car_sales: {}".format(PARTITIONS_NUM_car_sales_gen))
 
-car_installs_df  = dg.car_installs_gen(PARTITIONS_NUM_car_installs, ROW_COUNT_car_installs, UNIQUE_VALS_car_installs, True)
-car_sales_df     = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car_sales, UNIQUE_VALS_car_sales, True)
-customer_data_df = dg.customer_gen(x, y, z, PARTITIONS_NUM_customer_data, ROW_COUNT_customer_data, UNIQUE_VALS_customer_data, True)
-factory_data_df  = dg.factory_gen(x, y, z, PARTITIONS_NUM_factory_data, ROW_COUNT_factory_data, UNIQUE_VALS_factory_data, True)
-geo_data_df      = dg.geo_gen(x, y, z, PARTITIONS_NUM_geo_data, ROW_COUNT_geo_data, UNIQUE_VALS_geo_data, True)
-
-#---------------------------------------------------
-#       SQL CLEANUP: DATABASES, TABLES, VIEWS
-#---------------------------------------------------
-
-# Show catalog and database
-print("REMOVE PRIOR RUN DATABASE")
-spark.sql("DROP DATABASE IF EXISTS {} CASCADE".format(dbname))
-print("\n")
+car_sales_df = dg.car_sales_gen(x_gen, y_gen, z_gen, PARTITIONS_NUM_car_sales_gen, ROW_COUNT_car_sales_gen, UNIQUE_VALS_car_sales_gen, True)
 
 ##---------------------------------------------------
-##                 CREATE DATABASES
+##                 SHOW DATABASES
 ##---------------------------------------------------
 
-spark.sql("CREATE DATABASE {}".format(dbname))
-spark.sql("USE {}".format(dbname))
-print("\n")
 # Show databases
 print("SHOW DATABASES LIKE '{}'".format(dbname))
 spark.sql("SHOW DATABASES LIKE '{}'".format(dbname)).show()
@@ -193,125 +130,49 @@ print("CREATING ICBERG TABLES FROM SPARK DATAFRAMES \n")
 print("\n")
 
 car_sales_df.writeTo("{0}.CAR_SALES_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-car_installs_df.writeTo("{0}.CAR_INSTALLS_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-factory_data_df.writeTo("{0}.EXPERIMENTAL_MOTORS_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-customer_data_df.writeTo("{0}.CUSTOMER_DATA_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
-geo_data_df.writeTo("{0}.GEO_DATA_XREF_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
 
 print("SHOW TABLES FROM {}".format(dbname))
 spark.sql("SHOW TABLES FROM {}".format(dbname)).show()
 print("\n")
 
-'''
-car_sales_df.write.mode("overwrite").partitionedBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
-car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{1}'.format(dbname, username), format="parquet")
-factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
-customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
-geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
-'''
-'''car_sales_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/car_sales")
-car_installs_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/car_installs")
-factory_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/factory_data")
-customer_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/customer_data")
-geo_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/geo_data")
-'''
-
 print("\tPOPULATE TABLE(S) COMPLETED")
 
-print("JOB COMPLETED.\n\n")
+## CAR SALES TARGET TABLE
+table_data = [(timestamp,ROW_COUNT_car_sales_gen, UNIQUE_VALS_car_sales_gen,PARTITIONS_NUM_car_sales_gen,x_gen,y_gen,z_gen,None,None,None,None,None,None)]
 
-print("SPARK MEASURE METRICS TRACKING\n")
+schema = StructType([
+                    StructField("RUN_ID", FloatType(), True),\
+                    StructField("ROW_COUNT_car_sales_gen", LongType(), True),\
+                    StructField("UNIQUE_VALS_car_sales_gen", LongType(), True),\
+                    StructField("PARTITIONS_NUM_car_sales_gen", LongType(), True),\
+                    StructField("x_gen", LongType(), True),\
+                    StructField("y_gen", LongType(), True),\
+                    StructField("z_gen", LongType(), True),\
+                    StructField("ROW_PERCENT_car_sales_source_sample", LongType(), True),\
+                    StructField("ROW_COUNT_car_sales_source_sample", LongType(), True),\
+                    StructField("UNIQUE_VALS_car_sales_source_sample", LongType(), True),\
+                    StructField("ROW_COUNT_car_sales_staging", LongType(), True),\
+                    StructField("UNIQUE_VALS_car_sales_staging", LongType(), True),\
+                    StructField("ROW_PERCENT_car_sales_staging_df", LongType(), True)\
+                ])
 
-spark.sql("DROP TABLE IF EXISTS {}.TABLE_METRICS_TABLE".format(dbname))
+table_metrics_df = spark.createDataFrame(table_data, schema=schema)
 
-spark.sql("CREATE TABLE IF NOT EXISTS {}.TABLE_METRICS_TABLE\
-                (RUN_ID FLOAT,\
-                ROW_COUNT_car_sales BIGINT,\
-                UNIQUE_VALS_car_sales BIGINT,\
-                PARTITIONS_NUM_car_sales BIGINT,\
-                x BIGINT,\
-                y BIGINT,\
-                z BIGINT)".format(dbname))
-
-spark.sql("DROP TABLE IF EXISTS {}.STAGE_METRICS_TABLE".format(dbname))
-
-spark.sql("CREATE TABLE IF NOT EXISTS {}.STAGE_METRICS_TABLE\
-                (RUN_ID FLOAT,\
-                JOBID STRING,\
-                JOBGROUP STRING,\
-                STAGEID STRING,\
-                NAME STRING,\
-                SUBMISSIONTIME BIGINT,\
-                COMPLETIONTIME BIGINT,\
-                STAGEDURATION BIGINT,\
-                NUMTASKS INT,\
-                EXECUTORRUNTIME BIGINT,\
-                EXECUTORCPUTIME BIGINT,\
-                EXECUTORDESERIALIZETIME BIGINT,\
-                EXECUTORDESERIALIZECPUTIME BIGINT,\
-                RESULTSERIALIZATIONTIME BIGINT,\
-                JVMGCTIME BIGINT,\
-                RESULTSIZE BIGINT,\
-                DISKBYTESSPILLED BIGINT,\
-                MEMORYBYTESSPILLED BIGINT,\
-                PEAKEXECUTIONMEMORY BIGINT,\
-                RECORDSREAD BIGINT,\
-                BYTESREAD BIGINT,\
-                RECORDSWRITTEN BIGINT,\
-                BYTESWRITTEN BIGINT,\
-                SHUFFLEFETCHWAITTIME BIGINT,\
-                SHUFFLETOTALBYTESREAD BIGINT,\
-                SHUFFLETOTALBLOCKSFETCHED BIGINT,\
-                SHUFFLELOCALBLOCKSFETCHED BIGINT,\
-                SHUFFLEREMOTEBLOCKSFETCHED BIGINT,\
-                SHUFFLELOCALBYTESREAD BIGINT,\
-                SHUFFLEREMOTEBYTESREAD BIGINT,\
-                SHUFFLEREMOTEBYTESREADTODISK BIGINT,\
-                SHUFFLERECORDSREAD BIGINT,\
-                SHUFFLEWRITETIME BIGINT,\
-                SHUFFLEBYTESWRITTEN BIGINT,\
-                SHUFFLERECORDSWRITTEN BIGINT)".format(dbname))
-
-table_data = [{
-    "RUN_ID" : today,
-    "ROW_COUNT_car_sales" : ROW_COUNT_car_sales,
-    "UNIQUE_VALS_car_sales" : UNIQUE_VALS_car_sales,
-    "PARTITIONS_NUM_car_sales" : PARTITIONS_NUM_car_sales,
-    "x" : x,
-    "y" : y,
-    "z" : z
-}]
-
-table_metrics_df = spark.createDataFrame(table_data)
+table_metrics_df.show()
 
 print("Table metrics df")
 print(table_metrics_df.dtypes)
 
-"""metrics_df = metrics_df.withColumn("DAY_OF_RUN", lit(today))
-metrics_df = metrics_df.withColumn("ROW_COUNT_car_sales", lit(ROW_COUNT_car_sales))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_sales", lit(UNIQUE_VALS_car_sales))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_sales", lit(PARTITIONS_NUM_car_sales))
-metrics_df = metrics_df.withColumn("x", lit(x))
-metrics_df = metrics_df.withColumn("y", lit(y))
-metrics_df = metrics_df.withColumn("z", lit(z))"""
-
-"""metrics_df = metrics_df.withColumn("ROW_COUNT_car_installs", lit(ROW_COUNT_car_installs))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_car_installs", lit(UNIQUE_VALS_car_installs))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_car_installs", lit(PARTITIONS_NUM_car_installs))
-metrics_df = metrics_df.withColumn("ROW_COUNT_customer_data", lit(ROW_COUNT_customer_data))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_customer_data", lit(UNIQUE_VALS_customer_data))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_customer_data", lit(PARTITIONS_NUM_customer_data))
-metrics_df = metrics_df.withColumn("ROW_COUNT_factory_data", lit(ROW_COUNT_factory_data))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_factory_data", lit(UNIQUE_VALS_factory_data))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_factory_data", lit(PARTITIONS_NUM_factory_data))
-metrics_df = metrics_df.withColumn("ROW_COUNT_geo_data", lit(ROW_COUNT_geo_data))
-metrics_df = metrics_df.withColumn("UNIQUE_VALS_geo_data", lit(UNIQUE_VALS_geo_data))
-metrics_df = metrics_df.withColumn("PARTITIONS_NUM_geo_data", lit(PARTITIONS_NUM_geo_data))"""
-
-table_metrics_df.registerTempTable("TABLE_METRICS_TEMPTABLE")
+table_metrics_df.createOrReplaceTempView("TABLE_METRICS_TEMPTABLE")
 
 print("INSERT INTO {}.TABLE_METRICS_TABLE SELECT * FROM TABLE_METRICS_TEMPTABLE".format(dbname))
 spark.sql("INSERT INTO {}.TABLE_METRICS_TABLE SELECT * FROM TABLE_METRICS_TEMPTABLE".format(dbname))
 
-'''cumulative_metrics_df = spark.sql("SELECT * FROM {}.STAGE_METRICS_TABLE".format(dbname))
-display(cumulative_metrics_df.toPandas())'''
+##---------------------------------------------------
+##                 SHOW DATABASES
+##---------------------------------------------------
+
+# Show databases
+print("SHOW DATABASES LIKE '{}'".format(dbname))
+spark.sql("SHOW DATABASES LIKE '{}'".format(dbname)).show()
+print("\n")

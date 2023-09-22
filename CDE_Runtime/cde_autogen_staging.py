@@ -48,9 +48,12 @@ import pyspark.sql.functions as F
 from pyspark.sql.functions import lit
 from datagen import *
 from datetime import datetime
+import sys
+import random
 
-now = datetime.now()
-today = now.timestamp()
+print(sys.argv)
+
+timestamp = float(sys.argv[1])
 
 ## CDE PROPERTIES
 config = configparser.ConfigParser()
@@ -84,9 +87,9 @@ spark = SparkSession \
 
 dg = DataGen(spark, username)
 
-x = random.randint(1, 3)
-y = random.randint(1, 4)
-z = random.randint(2, 5)
+x_gen = random.randint(1, 3)
+y_gen = random.randint(1, 4)
+z_gen = random.randint(2, 5)
 
 def check_partitions(partitions):
   if partitions > 100:
@@ -97,22 +100,42 @@ def check_partitions(partitions):
     return partitions
   return partitions
 
-ROW_COUNT_car_sales = random.randint(500000, 500000)
-UNIQUE_VALS_car_sales = random.randint(500, ROW_COUNT_car_sales-1)
-PARTITIONS_NUM_car_sales = round(ROW_COUNT_car_sales / UNIQUE_VALS_car_sales)
-PARTITIONS_NUM_car_sales = check_partitions(PARTITIONS_NUM_car_sales)
+ROW_COUNT_car_sales_gen = random.randint(500000, 500000)
+UNIQUE_VALS_car_sales_gen = random.randint(500, ROW_COUNT_car_sales_gen-1)
+PARTITIONS_NUM_car_sales_gen = round(ROW_COUNT_car_sales_gen / UNIQUE_VALS_car_sales_gen)
+PARTITIONS_NUM_car_sales_gen = check_partitions(PARTITIONS_NUM_car_sales_gen)
 
 print("SPARKGEN PIPELINE SPARK HYPERPARAMS")
 print("\n")
-print("x: {}".format(x))
-print("y: {}".format(y))
-print("z: {}".format(z))
+print("x: {}".format(x_gen))
+print("y: {}".format(y_gen))
+print("z: {}".format(z_gen))
 print("\n")
-print("ROW_COUNT_car_sales: {}".format(ROW_COUNT_car_sales))
-print("UNIQUE_VALS_car_sales: {}".format(UNIQUE_VALS_car_sales))
-print("PARTITIONS_NUM_car_sales: {}".format(PARTITIONS_NUM_car_sales))
+print("ROW_COUNT_car_sales: {}".format(ROW_COUNT_car_sales_gen))
+print("UNIQUE_VALS_car_sales: {}".format(UNIQUE_VALS_car_sales_gen))
+print("PARTITIONS_NUM_car_sales: {}".format(PARTITIONS_NUM_car_sales_gen))
 
-car_sales_df = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car_sales, UNIQUE_VALS_car_sales, True)
+car_sales_generated_df = dg.car_sales_gen(x_gen, y_gen, z_gen, PARTITIONS_NUM_car_sales_gen, ROW_COUNT_car_sales_gen, UNIQUE_VALS_car_sales_gen, True)
+
+#Percentage of Rows Sampled from Car Sales
+ROW_PERCENT_car_sales_source_sample = random.randint(1,100)
+print("Car Sales Source Percent: {}".format(ROW_PERCENT_car_sales_source_sample))
+
+car_sales_source_sample_df = spark.sql("SELECT * FROM {0}.CAR_SALES_{1} TABLESAMPLE ({2} PERCENT)".format(dbname, username, ROW_PERCENT_car_sales_source_sample))
+
+UNIQUE_VALS_car_sales_source_sample = car_sales_source_sample_df.distinct().count()
+
+#Absolute Number of Rows Sampled from Car Sales
+ROW_COUNT_car_sales_source_sample = car_sales_source_sample_df.count()
+print("Car Sales Source Absolute: {}".format(ROW_COUNT_car_sales_source_sample))
+
+car_sales_staging_df = car_sales_generated_df.union(car_sales_source_sample_df)
+
+ROW_COUNT_car_sales_staging = car_sales_staging_df.count()
+UNIQUE_VALS_car_sales_staging = car_sales_staging_df.distinct().count()
+
+# Percent of staging table rows that come from sample
+ROW_PERCENT_car_sales_staging_df = ROW_COUNT_car_sales_source_sample / ROW_COUNT_car_sales_staging
 
 #---------------------------------------------------
 #               POPULATE TABLES
@@ -120,38 +143,33 @@ car_sales_df = dg.car_sales_gen(x, y, z, PARTITIONS_NUM_car_sales, ROW_COUNT_car
 print("CREATING ICBERG TABLES FROM SPARK DATAFRAMES \n")
 print("\n")
 
-car_sales_df.writeTo("{0}.CAR_SALES_STAGING_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
+car_sales_staging_df = car_sales_staging_df.dropDuplicates(['id'])
 
-'''car_sales_df.write.mode("overwrite").partitionedBy("month").saveAsTable('{0}.CAR_SALES_{1}'.format(dbname, username), format="parquet")
-car_installs_df.write.mode("overwrite").saveAsTable('{0}.CAR_INSTALLS_{1}'.format(dbname, username), format="parquet")
-factory_data_df.write.mode("overwrite").saveAsTable('{0}.EXPERIMENTAL_MOTORS_{1}'.format(dbname, username), format="parquet")
-customer_data_df.write.mode("overwrite").saveAsTable('{0}.CUSTOMER_DATA_{1}'.format(dbname, username), format="parquet")
-geo_data_df.write.mode("overwrite").saveAsTable('{0}.GEO_DATA_XREF_{1}'.format(dbname, username), format="parquet")
-'''
-'''car_sales_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/car_sales")
-car_installs_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/car_installs")
-factory_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/factory_data")
-customer_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/customer_data")
-geo_data_df.write.mode("overwrite").option("header",True).csv("s3a://go01-demo/datalake/pdefusco/datagen/geo_data")
-'''
+car_sales_staging_df.writeTo("{0}.CAR_SALES_STAGING_{1}".format(dbname, username)).using("iceberg").tableProperty("write.format.default", "parquet").createOrReplace()
 
 print("\tPOPULATE TABLE(S) COMPLETED")
 
 print("JOB COMPLETED.\n\n")
 
 table_data = [{
-    "RUN_ID" : today,
-    "ROW_COUNT_car_sales" : ROW_COUNT_car_sales,
-    "UNIQUE_VALS_car_sales" : UNIQUE_VALS_car_sales,
-    "PARTITIONS_NUM_car_sales" : PARTITIONS_NUM_car_sales,
-    "x" : x,
-    "y" : y,
-    "z" : z
+    "RUN_ID" : timestamp,
+    "ROW_COUNT_car_sales_gen" : ROW_COUNT_car_sales_gen,
+    "UNIQUE_VALS_car_sales_gen" : UNIQUE_VALS_car_sales_gen,
+    "PARTITIONS_NUM_car_sales_gen" : PARTITIONS_NUM_car_sales_gen,
+    "x_gen" : x_gen,
+    "y_gen" : y_gen,
+    "z_gen" : z_gen,
+    "ROW_PERCENT_car_sales_source_sample" : ROW_PERCENT_car_sales_source_sample,
+    "ROW_COUNT_car_sales_source_sample" : ROW_COUNT_car_sales_source_sample,
+    "UNIQUE_VALS_car_sales_source_sample" : UNIQUE_VALS_car_sales_source_sample,
+    "ROW_COUNT_car_sales_staging" : ROW_COUNT_car_sales_staging,
+    "UNIQUE_VALS_car_sales_staging" : UNIQUE_VALS_car_sales_staging,
+    "ROW_PERCENT_car_sales_staging_df" : ROW_PERCENT_car_sales_staging_df
 }]
 
 table_metrics_df = spark.createDataFrame(table_data)
 
-table_metrics_df.registerTempTable("TABLE_METRICS_TEMPTABLE")
+table_metrics_df.createOrReplaceTempView("TABLE_METRICS_TEMPTABLE")
 
 print("INSERT INTO {}.TABLE_METRICS_TABLE SELECT * FROM TABLE_METRICS_TEMPTABLE".format(dbname))
 spark.sql("INSERT INTO {}.TABLE_METRICS_TABLE SELECT * FROM TABLE_METRICS_TEMPTABLE".format(dbname))

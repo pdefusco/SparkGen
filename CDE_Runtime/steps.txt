@@ -1,29 +1,71 @@
+## BUILD DOCKER CONTAINER
+
 docker build --network=host -t pauldefusco/dex-spark-runtime-3.2.3-7.2.15.8:1.20.0-b15-dbldatagen-002 . -f Dockerfile
 
 docker run -it pauldefusco/dex-spark-runtime-3.2.3-7.2.15.8:1.20.0-b15-dbldatagen-002 /bin/bash
 
 docker push pauldefusco/dex-spark-runtime-3.2.3-7.2.15.8:1.20.0-b15-dbldatagen-002
 
-cde credential create --name docker-creds --type docker-basic --docker-server hub.docker.com --docker-username pauldefusco --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde credential create --name docker-creds --type docker-basic --docker-server hub.docker.com --docker-username pauldefusco
 
-cde resource create --name dex-spark-runtime-dbldatagen-002 --image pauldefusco/dex-spark-runtime-3.2.3-7.2.15.8:1.20.0-b15-dbldatagen-002 --image-engine spark3 --type custom-runtime-image --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+## CREATE DOCKER RUNTIME RESOURCE
 
-#cde spark submit --user=pauldefusco dbldatagen_example.py --runtime-image-resource-name=dex-spark-runtime-dbldatagen-02 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde resource create --name dex-spark-runtime-dbldatagen-002 --image pauldefusco/dex-spark-runtime-3.2.3-7.2.15.8:1.20.0-b15-dbldatagen-002 --image-engine spark3 --type custom-runtime-image
 
-cde resource create --name sparkgenfiles --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+#cde spark submit --user=pauldefusco CDE_Runtime/dbldatagen_example.py --runtime-image-resource-name=dex-spark-runtime-dbldatagen-002
 
-cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_autogen_staging.py --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+## CREATE FILE RESOURCE
 
-cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_autogen_target.py --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde resource create --name sparkgenfiles
 
-cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_mergeinto.py --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/datagen.py
 
-cde resource upload --name sparkgenfiles --local-path CDE_Runtime/datagen.py --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/parameters.conf
 
-cde resource upload --name sparkgenfiles --local-path CDE_Runtime/parameters.conf --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+## CREATE SPARKGEN METADATA TABLES
 
-cde job create --name sparkgen_job_target --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_target.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1 --arg RUN_ID
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/table_gen.py
 
-cde job create --name sparkgen_job_staging --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_staging.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1 --arg RUN_ID
+cde job create --name tablegen --type spark --mount-1-resource sparkgenfiles --application-file table_gen.py --runtime-image-resource-name dex-spark-runtime-dbldatagen-002
 
-#cde job run --name sparkgen_job --executor-memory "4g" --executor-cores 4 --vcluster-endpoint https://jcxk6ghn.cde-ntvvr5hx.go01-dem.ylcu-atmi.cloudera.site/dex/api/v1
+cde job run --name tablegen
+
+## CREATE TARGET TABLE AND INSERT METADATA INTO SPARKGEN METADATA TABLES
+
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_autogen_target.py
+
+cde job create --name sparkgen_job_target --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_target.py --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002
+
+cde job run --name sparkgen_job_target
+
+## CREATE STAGING AND MERGE INTO JOBS WITH ORCH DAG AND RUN ORCH DAG
+
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_autogen_staging.py
+
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_mergeinto.py
+
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/airflow_DAG.py
+
+cde resource create --type python-env --name sparkgen_py
+
+cde resource upload --local-path CDE_Runtime/requirements.txt --name sparkgen_py
+
+cde job create --name sparkgen_job_staging --type spark --mount-1-resource sparkgenfiles --application-file cde_autogen_staging.py --jar spark-measure_2.12-0.23.jar --executor-memory "4g" --executor-cores 4 --user pauldefusco --runtime-image-resource-name dex-spark-runtime-dbldatagen-002 --arg {{{RUN_ID}}}
+
+cde job create --name sparkgen_mergeinto --type spark --mount-1-resource sparkgenfiles --application-file cde_mergeinto.py --jar spark-measure_2.12-0.23.jar --python-env-resource-name sparkgen_py --executor-memory "4g" --executor-cores 4 --user pauldefusco --arg {{{RUN_ID}}}
+
+cde job create --name new_orch --type airflow --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py
+
+cde job run --name new_orch
+
+## UPDATE DAG
+
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/airflow_DAG.py
+
+cde job update --name new_orch --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py --cron-expression "*/5 * * * *"
+
+cde job run --name new_orch
+
+## RUN SINGLE JOB
+
+cde job run --name sparkgen_mergeinto --arg 12345
