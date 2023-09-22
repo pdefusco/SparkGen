@@ -49,7 +49,7 @@ dbname = "SPARKGEN_{}".format(username)
 
 print("Running as Username: ", username)
 
-dag_name = 'sparkgen_dag_prod_v2'
+dag_name = 'sparkgen_dag_prod_v3'
 
 default_args = {
         'owner':'pauldefusco',
@@ -65,6 +65,7 @@ airflow_dag = DAG(
         dag_name,
         default_args=default_args,
         catchup=False,
+        schedule_interval='*/5 * * * *',
         is_paused_upon_creation=False,
         params={
          "run_id": datetime.now().timestamp()

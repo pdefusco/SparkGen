@@ -62,7 +62,7 @@ cde job run --name new_orch
 
 cde resource upload --name sparkgenfiles --local-path CDE_Runtime/airflow_DAG.py
 
-cde job update --name new_orch --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py --cron-expression "*/5 * * * *"
+cde job update --name new_orch --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py
 
 cde job run --name new_orch
 
