@@ -46,6 +46,10 @@ cde resource upload --name sparkgenfiles --local-path CDE_Runtime/cde_mergeinto.
 
 cde resource upload --name sparkgenfiles --local-path CDE_Runtime/airflow_DAG.py
 
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/iceberg_metadata_queries.py
+
+cde resource upload --name sparkgenfiles --local-path CDE_Runtime/spark-measure_2.12-0.23.jar
+
 cde resource create --type python-env --name sparkgen_py
 
 cde resource upload --local-path CDE_Runtime/requirements.txt --name sparkgen_py
@@ -54,17 +58,21 @@ cde job create --name sparkgen_job_staging --type spark --mount-1-resource spark
 
 cde job create --name sparkgen_mergeinto --type spark --mount-1-resource sparkgenfiles --application-file cde_mergeinto.py --jar spark-measure_2.12-0.23.jar --python-env-resource-name sparkgen_py --executor-memory "4g" --executor-cores 4 --user pauldefusco --arg {{{RUN_ID}}}
 
-cde job create --name new_orch --type airflow --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py
+cde job create --name sparkgen_orch --type airflow --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py
 
-cde job run --name new_orch
+cde job create --name iceberg_metadata_queries --type spark --mount-1-resource sparkgenfiles --application-file iceberg_metadata_queries.py
+
+cde job run --name iceberg_metadata_queries
+
+#cde job run --name sparkgen_orch
 
 ## UPDATE DAG
 
 cde resource upload --name sparkgenfiles --local-path CDE_Runtime/airflow_DAG.py
 
-cde job update --name new_orch --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py
+cde job update --name sparkgen_orch --mount-1-resource sparkgenfiles --dag-file airflow_DAG.py
 
-cde job run --name new_orch
+cde job run --name sparkgen_orch
 
 ## RUN SINGLE JOB
 

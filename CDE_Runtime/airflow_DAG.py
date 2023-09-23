@@ -93,4 +93,11 @@ mergeinto_step = CDEJobRunOperator(
         trigger_rule='all_success',
         )
 
-start >> staging_step >> mergeinto_step
+iceberg_metadata_step = CDEJobRunOperator(
+        task_id='iceberg-metadata-queries',
+        dag=airflow_dag,
+        job_name='sparkgen_metadata_queries', #Must match name of CDE Spark Job in the CDE Jobs UI
+        trigger_rule='all_success',
+        )
+
+start >> staging_step >> mergeinto_step >> iceberg_metadata_step
